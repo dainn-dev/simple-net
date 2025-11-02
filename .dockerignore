@@ -1,0 +1,36 @@
+# Exclude test projects from Docker build
+DainnUserManagement.Tests/
+
+# Exclude build artifacts
+**/bin/
+**/obj/
+*.user
+*.suo
+*.cache
+
+# Exclude version control
+.git/
+.gitignore
+
+# Exclude Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Exclude documentation
+docs/
+*.md
+README*
+
+# Exclude configuration files not needed in container
+*.json
+!**/appsettings*.json
+
+# Exclude Grafana provisioning (not needed in app container)
+grafana/
+
+# Exclude observability configs (not needed in app container)
+otel-config.yaml
+prometheus.yml
+promtail-config.yml
+

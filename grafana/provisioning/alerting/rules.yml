@@ -1,0 +1,75 @@
+groups:
+  - name: DainnUserManagement_Alerts
+    interval: 30s
+    org_id: 1
+    folder: DainnUserManagement
+    rules:
+      - uid: high_failed_logins
+        title: High Failed Logins
+        condition: A
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: 'rate(auth_login_total{result="failed"}[5m]) > 5'
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          description: 'High rate of failed login attempts detected: {{ $value }} failed logins per second in the last 5 minutes.'
+          summary: 'High Failed Login Rate Alert'
+        labels:
+          severity: warning
+          team: security
+
+      - uid: db_slow
+        title: Database Slow Queries
+        condition: A
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: 'avg(efcore_command_duration_seconds)[5m] > 1'
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          description: 'Average database command duration is {{ $value }}s, which exceeds the 1 second threshold.'
+          summary: 'Database Performance Alert'
+        labels:
+          severity: warning
+          team: backend
+
+      - uid: http_401_spike
+        title: HTTP 401 Unauthorized Spike
+        condition: A
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: 'rate(http_server_duration_seconds_bucket{status_code="401"}[5m]) > 10'
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          description: 'High rate of HTTP 401 Unauthorized responses detected: {{ $value }} requests per second in the last 5 minutes.'
+          summary: 'HTTP 401 Spike Alert'
+        labels:
+          severity: warning
+          team: security
+

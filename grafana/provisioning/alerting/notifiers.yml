@@ -1,0 +1,43 @@
+notifiers:
+  # Email Notification Channel
+  - uid: email_notifier
+    name: Email Notifications
+    type: email
+    org_id: 1
+    is_default: true
+    settings:
+      addresses: admin@example.com,ops@example.com
+      singleEmail: false
+      uploadImage: true
+    send_reminder: true
+    disable_resolve_message: false
+
+  # Slack Notification Channel
+  - uid: slack_notifier
+    name: Slack Alerts
+    type: slack
+    org_id: 1
+    is_default: false
+    settings:
+      url: 'YOUR_SLACK_WEBHOOK_URL_HERE'
+      username: Grafana
+      channel: '#alerts'
+      title: '{{ .GroupLabels.alertname }}'
+      text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+      icon_emoji: ':warning:'
+    send_reminder: true
+    disable_resolve_message: false
+
+  # PagerDuty Notification Channel
+  - uid: pagerduty_notifier
+    name: PagerDuty
+    type: pagerduty
+    org_id: 1
+    is_default: false
+    settings:
+      integrationKey: 'YOUR_PAGERDUTY_INTEGRATION_KEY_HERE'
+      severity: '{{ .CommonLabels.severity }}'
+      description: '{{ .GroupLabels.alertname }}: {{ .CommonAnnotations.summary }}'
+    send_reminder: true
+    disable_resolve_message: false
+
