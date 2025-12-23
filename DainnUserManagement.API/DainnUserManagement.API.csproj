@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DainnUserManagement\DainnUserManagement.csproj" />
+    <ProjectReference Include="..\DainnProductEAVManagement\DainnProductEAVManagement.csproj" />
   </ItemGroup>
 
   <ItemGroup>

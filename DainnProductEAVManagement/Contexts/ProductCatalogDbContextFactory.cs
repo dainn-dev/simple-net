@@ -5,13 +5,13 @@ using Microsoft.Extensions.Configuration;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 #endif
 
-namespace DainnUserManagement.Infrastructure.Persistence;
+namespace DainnProductEAVManagement.Contexts;
 
-public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
+public class ProductCatalogDbContextFactory : IDesignTimeDbContextFactory<ProductCatalogDbContext>
 {
-    public AppDbContext CreateDbContext(string[] args)
+    public ProductCatalogDbContext CreateDbContext(string[] args)
     {
-        var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
+        var optionsBuilder = new DbContextOptionsBuilder<ProductCatalogDbContext>();
 
         // Try to find appsettings.json in the API project
         var configuration = new ConfigurationBuilder()
@@ -22,7 +22,8 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 
         var dainnApplicationSection = configuration.GetSection("DainnApplication");
         var provider = dainnApplicationSection["Provider"] ?? "sqlite";
-        var connectionString = dainnApplicationSection["ConnectionString"] ?? "Data Source=app.db";
+        // Use the same connection string as UserManagement (same database)
+        var connectionString = dainnApplicationSection["ConnectionString"] ?? "Data Source=userdb.db";
 
         switch (provider.ToLowerInvariant())
         {
@@ -34,9 +35,11 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
                 break;
             case "postgresql":
             case "npgsql":
+            case "postgres":
                 optionsBuilder.UseNpgsql(connectionString);
                 break;
             case "mysql":
+            case "mariadb":
 #if !DISABLE_MYSQL
                 optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 #else
@@ -48,7 +51,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
                 break;
         }
 
-        return new AppDbContext(optionsBuilder.Options);
+        return new ProductCatalogDbContext(optionsBuilder.Options);
     }
 }
 

@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DainnUserManagement.Tests",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DainnUserManagement.API", "DainnUserManagement.API\DainnUserManagement.API.csproj", "{5B286F79-B6F1-8277-5793-875066A8FA69}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DainnProductEAVManagement", "DainnProductEAVManagement\DainnProductEAVManagement.csproj", "{9222E5A6-1C03-4520-852C-B4A0BC1F9AD3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,18 @@ Global
 		{5B286F79-B6F1-8277-5793-875066A8FA69}.Release|x64.Build.0 = Release|Any CPU
 		{5B286F79-B6F1-8277-5793-875066A8FA69}.Release|x86.ActiveCfg = Release|Any CPU
 		{5B286F79-B6F1-8277-5793-875066A8FA69}.Release|x86.Build.0 = Release|Any CPU
+		{9222E5A6-1C03-4520-852C-B4A0BC1F9AD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9222E5A6-1C03-4520-852C-B4A0BC1F9AD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9222E5A6-1C03-4520-852C-B4A0BC1F9AD3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9222E5A6-1C03-4520-852C-B4A0BC1F9AD3}.Debug|x64.Build.0 = Debug|Any CPU
+		{9222E5A6-1C03-4520-852C-B4A0BC1F9AD3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9222E5A6-1C03-4520-852C-B4A0BC1F9AD3}.Debug|x86.Build.0 = Debug|Any CPU
+		{9222E5A6-1C03-4520-852C-B4A0BC1F9AD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9222E5A6-1C03-4520-852C-B4A0BC1F9AD3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9222E5A6-1C03-4520-852C-B4A0BC1F9AD3}.Release|x64.ActiveCfg = Release|Any CPU
+		{9222E5A6-1C03-4520-852C-B4A0BC1F9AD3}.Release|x64.Build.0 = Release|Any CPU
+		{9222E5A6-1C03-4520-852C-B4A0BC1F9AD3}.Release|x86.ActiveCfg = Release|Any CPU
+		{9222E5A6-1C03-4520-852C-B4A0BC1F9AD3}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

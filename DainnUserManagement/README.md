@@ -101,6 +101,9 @@ app.Run();
     "SeedDefaultAdmin": true,
     "DefaultAdminEmail": "admin@example.com",
     "DefaultAdminPassword": "Admin@123!",
+    // When SeedDefaultAdmin is true, the following accounts are created:
+    // - Admin account: admin@example.com / Admin@123! (Admin role)
+    // - User account: user@example.com / User@123! (User role)
     "JwtSettings": {
       "AccessTokenHours": 1,
       "RefreshTokenDays": 7
@@ -256,6 +259,25 @@ dotnet ef database update --project ../DainnUserManagement --startup-project .
 ### Provider-Specific Migrations
 
 For most providers, standard migrations work automatically. Migrations adapt to the configured database provider based on the `UserManagement.Provider` setting in `appsettings.json`.
+
+## Database Seeding
+
+When `SeedDefaultAdmin` is set to `true` in your configuration, the application will automatically seed the database with:
+
+1. **Admin Role**: Creates an "Admin" role with full access
+2. **User Role**: Creates a "User" role for standard users
+3. **Admin Account**: 
+   - Email: `admin@example.com` (configurable via `DefaultAdminEmail`)
+   - Password: `Admin@123!` (configurable via `DefaultAdminPassword`)
+   - Role: Admin
+   - Email confirmed and active
+4. **User Account**:
+   - Email: `user@example.com`
+   - Password: `User@123!`
+   - Role: User
+   - Email confirmed and active
+
+Both accounts are created only if they don't already exist. If accounts exist, the seeding process ensures they have the correct roles assigned.
 
 ## Domain Model
 
@@ -640,7 +662,7 @@ Configure in `appsettings.json`:
 | `ApplicationName` | string | `"DainnUserManagement"` | Application name for 2FA QR codes |
 | `Enable2FA` | bool | `false` | Enable two-factor authentication |
 | `AutoMigrateDatabase` | bool | `false` | Automatically apply migrations on startup |
-| `SeedDefaultAdmin` | bool | `false` | Seed default admin user and role |
+| `SeedDefaultAdmin` | bool | `false` | Seed default admin and user accounts with roles |
 | `DefaultAdminEmail` | string | `"admin@example.com"` | Default admin email |
 | `DefaultAdminPassword` | string | `"Admin@123!"` | Default admin password |
 | `EnforceHttps` | bool | `false` | Enforce HTTPS redirection |

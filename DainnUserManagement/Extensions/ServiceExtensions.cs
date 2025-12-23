@@ -46,7 +46,8 @@ public static class ServiceExtensions
     public static void AddDainnUserManagement(this WebApplicationBuilder builder, Action<UserManagementOptions>? configureOptions = null)
     {
         var options = new UserManagementOptions();
-        builder.Configuration.GetSection("UserManagement").Bind(options);
+        builder.Configuration.GetSection("DainnApplication").Bind(options);
+        
         configureOptions?.Invoke(options);
 
         // Validate required configuration
@@ -84,10 +85,10 @@ public static class ServiceExtensions
                     break;
                 default:
                     throw new InvalidOperationException(
-                        $"Invalid or missing database provider. The 'UserManagement:Provider' configuration must be set to one of: " +
+                        $"Invalid or missing database provider. The 'DainnApplication:Provider' configuration must be set to one of: " +
                         $"sqlite, sqlserver, postgresql, npgsql, mysql, or inmemory. " +
                         $"Current value: '{options.Provider}'. " +
-                        $"Please add a 'UserManagement' section to your appsettings.json with a valid 'Provider' value.");
+                        $"Please add a 'DainnApplication:Provider' in your appsettings.json with a valid provider value.");
             }
 
             options.ConfigureDbContext?.Invoke(dbOptions);
@@ -146,7 +147,7 @@ public static class ServiceExtensions
         if (jwtValidation == null)
         {
             jwtValidation = new JwtValidationOptions();
-            builder.Configuration.GetSection("UserManagement:JwtValidation").Bind(jwtValidation);
+            builder.Configuration.GetSection("DainnApplication:JwtValidation").Bind(jwtValidation);
         }
 
         // CRITICAL: Configure authentication with JWT Bearer
@@ -632,30 +633,30 @@ public static class ServiceExtensions
         if (string.IsNullOrWhiteSpace(options.Provider))
         {
             errors.Add(
-                "The 'UserManagement:Provider' configuration is required. " +
+                "The 'DainnApplication:Provider' configuration is required. " +
                 "Please set it to one of: sqlite, sqlserver, postgresql, npgsql, mysql, or inmemory. " +
-                "Example: \"UserManagement\": { \"Provider\": \"sqlite\", ... }");
+                "Example: \"DainnApplication\": { \"Provider\": \"postgresql\", \"ConnectionString\": \"...\", ... }");
         }
 
         if (string.IsNullOrWhiteSpace(options.ConnectionString))
         {
             errors.Add(
-                "The 'UserManagement:ConnectionString' configuration is required. " +
+                "The 'DainnApplication:ConnectionString' configuration is required. " +
                 "Please provide a valid database connection string. " +
-                "Example: \"UserManagement\": { \"ConnectionString\": \"Data Source=app.db\", ... }");
+                "Example: \"DainnApplication\": { \"ConnectionString\": \"Data Source=app.db\", ... }");
         }
 
         if (string.IsNullOrWhiteSpace(options.JwtSecret))
         {
             errors.Add(
-                "The 'UserManagement:JwtSecret' configuration is required. " +
+                "The 'DainnApplication:JwtSecret' configuration is required. " +
                 "Please provide a secret key with at least 32 characters for security. " +
-                "Example: \"UserManagement\": { \"JwtSecret\": \"YourSuperSecretKeyForJWTTokenGeneration12345678901234567890\", ... }");
+                "Example: \"DainnApplication\": { \"JwtSecret\": \"YourSuperSecretKeyForJWTTokenGeneration12345678901234567890\", ... }");
         }
         else if (options.JwtSecret.Length < 32)
         {
             errors.Add(
-                $"The 'UserManagement:JwtSecret' must be at least 32 characters long for security. " +
+                $"The 'DainnApplication:JwtSecret' must be at least 32 characters long for security. " +
                 $"Current length: {options.JwtSecret.Length} characters. " +
                 "Please provide a longer secret key.");
         }
@@ -664,7 +665,7 @@ public static class ServiceExtensions
         {
             var errorMessage = "UserManagement configuration is invalid or missing required settings:\n\n" +
                              string.Join("\n\n", errors.Select((e, i) => $"{i + 1}. {e}")) +
-                             "\n\nPlease add a 'UserManagement' section to your appsettings.json with the required configuration.";
+                             "\n\nPlease add a 'DainnApplication' section to your appsettings.json with the required configuration.";
             
             throw new InvalidOperationException(errorMessage);
         }
@@ -870,6 +871,129 @@ public static class ServiceExtensions
                             adminUser.Id, adminUser.Email);
                     }
                 }
+        }
+
+        // Seed User role
+        AppRole? userRole = null;
+        try
+        {
+            userRole = await roleManager.FindByNameAsync("User");
+        }
+        catch (Exception ex)
+        {
+            var errorMessage = ex.Message + (ex.InnerException != null ? " " + ex.InnerException.Message : "");
+            var isTableError = 
+                errorMessage.Contains("ORA-00942", StringComparison.OrdinalIgnoreCase) ||
+                errorMessage.Contains("does not exist", StringComparison.OrdinalIgnoreCase) ||
+                errorMessage.Contains("Invalid object name", StringComparison.OrdinalIgnoreCase) ||
+                errorMessage.Contains("no such table", StringComparison.OrdinalIgnoreCase);
+
+            if (isTableError)
+            {
+                logger.LogWarning("Could not query for user role - tables may not exist. Skipping role seeding.");
+                return;
+            }
+            throw;
+        }
+        
+        if (userRole == null)
+        {
+            userRole = new AppRole
+            {
+                Name = "User",
+                Description = "Standard user role with basic access",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            var createRoleResult = await roleManager.CreateAsync(userRole);
+            if (createRoleResult.Succeeded)
+            {
+                logger.LogInformation("User role seeded successfully. RoleName: {RoleName}", userRole.Name);
+            }
+            else
+            {
+                logger.LogError("Failed to seed user role. RoleName: {RoleName}, Errors: {Errors}", 
+                    userRole.Name, string.Join(", ", createRoleResult.Errors.Select(e => e.Description)));
+            }
+        }
+
+        // Seed default user account
+        const string defaultUserEmail = "user@example.com";
+        const string defaultUserPassword = "User@123!";
+        
+        AppUser? regularUser = null;
+        try
+        {
+            regularUser = await userManager.FindByEmailAsync(defaultUserEmail);
+        }
+        catch (Exception ex)
+        {
+            var errorMessage = ex.Message + (ex.InnerException != null ? " " + ex.InnerException.Message : "");
+            var isTableError = 
+                errorMessage.Contains("ORA-00942", StringComparison.OrdinalIgnoreCase) ||
+                errorMessage.Contains("does not exist", StringComparison.OrdinalIgnoreCase) ||
+                errorMessage.Contains("Invalid object name", StringComparison.OrdinalIgnoreCase) ||
+                errorMessage.Contains("no such table", StringComparison.OrdinalIgnoreCase);
+
+            if (isTableError)
+            {
+                logger.LogWarning("Could not query for user - tables may not exist. Skipping user seeding.");
+                return;
+            }
+            throw;
+        }
+        
+        if (regularUser == null)
+        {
+            regularUser = new AppUser
+            {
+                Email = defaultUserEmail,
+                UserName = defaultUserEmail,
+                FullName = "Regular User",
+                IsActive = true,
+                EmailConfirmed = true,
+                EmailConfirmedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            var createUserResult = await userManager.CreateAsync(regularUser, defaultUserPassword);
+            if (createUserResult.Succeeded)
+            {
+                logger.LogInformation("Default user account created successfully. Email: {Email}", defaultUserEmail);
+
+                // Assign User role to the regular user
+                var addToRoleResult = await userManager.AddToRoleAsync(regularUser, "User");
+                if (addToRoleResult.Succeeded)
+                {
+                    logger.LogInformation("User role assigned to default user account");
+                }
+                else
+                {
+                    logger.LogWarning("Failed to assign user role to default user: {Errors}", 
+                        string.Join(", ", addToRoleResult.Errors));
+                }
+            }
+            else
+            {
+                logger.LogError("Failed to create default user account: {Errors}", 
+                    string.Join(", ", createUserResult.Errors));
+            }
+        }
+        else
+        {
+            // User exists, ensure they have User role
+            var userRoles = await userManager.GetRolesAsync(regularUser);
+            if (!userRoles.Contains("User"))
+            {
+                var addToRoleResult = await userManager.AddToRoleAsync(regularUser, "User");
+                if (addToRoleResult.Succeeded)
+                {
+                    logger.LogInformation("User role assigned to existing user. UserId: {UserId}, Email: {Email}", 
+                        regularUser.Id, regularUser.Email);
+                }
+            }
         }
     }
 }

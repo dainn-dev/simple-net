@@ -37,6 +37,13 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>
                 foreach (var property in entityType.GetProperties().Where(p => p.ClrType == typeof(Guid) || p.ClrType == typeof(Guid?)))
                 {
                     property.SetColumnType("uuid");
+                    
+                    // Set default value for primary key Guid properties (non-nullable)
+                    if (property.ClrType == typeof(Guid) && !property.IsNullable && 
+                        entityType.FindPrimaryKey()?.Properties.Contains(property) == true)
+                    {
+                        property.SetDefaultValueSql("gen_random_uuid()");
+                    }
                 }
             }
         }
@@ -60,6 +67,13 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>
         // Configure RefreshToken
         builder.Entity<RefreshToken>(entity =>
         {
+            // Primary key default value for PostgreSQL
+            if (Database.IsNpgsql())
+            {
+                entity.Property(e => e.Id)
+                    .HasDefaultValueSql("gen_random_uuid()");
+            }
+
             // Token index
             entity.HasIndex(e => e.Token)
                 .IsUnique();
@@ -72,6 +86,13 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>
         // Configure AuditLog
         builder.Entity<AuditLog>(entity =>
         {
+            // Primary key default value for PostgreSQL
+            if (Database.IsNpgsql())
+            {
+                entity.Property(e => e.Id)
+                    .HasDefaultValueSql("gen_random_uuid()");
+            }
+
             // Timestamp default value
             entity.Property(e => e.Timestamp)
                 .HasDefaultValueSql(currentTimestampSql);
@@ -80,6 +101,13 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>
         // Configure Permission
         builder.Entity<Permission>(entity =>
         {
+            // Primary key default value for PostgreSQL
+            if (Database.IsNpgsql())
+            {
+                entity.Property(e => e.Id)
+                    .HasDefaultValueSql("gen_random_uuid()");
+            }
+
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql(currentTimestampSql);
 

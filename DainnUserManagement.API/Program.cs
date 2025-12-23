@@ -1,6 +1,7 @@
 using DainnUserManagement.Extensions;
 using DainnUserManagement.API.Controllers;
 using DainnUserManagement.API.Extensions;
+using DainnProductEAVManagement.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,9 @@ builder.Services.AddControllers()
 // NOTE: AddDainnUserManagement() doesn't call AddControllers() anymore to avoid conflicts
 builder.AddDainnUserManagement();
 
+// Add Product Catalog EAV Management
+builder.Services.AddProductCatalog(builder.Configuration);
+
 // Configure Serilog logging
 builder.Host.UseSerilogLogging();
 
@@ -24,15 +28,25 @@ builder.Services.AddSwaggerDocumentation(builder.Configuration);
 var app = builder.Build();
 
 // Database migration (if enabled) - MUST happen before any middleware that accesses the database
-if (app.Configuration.GetValue<bool>("UserManagement:AutoMigrateDatabase"))
+if (app.Configuration.GetValue<bool>("DainnApplication:AutoMigrateDatabase"))
 {
     app.MigrateDatabase();
 }
 
 // Database seeding (if enabled) - MUST happen after migration
-if (app.Configuration.GetValue<bool>("UserManagement:SeedDefaultAdmin"))
+if (app.Configuration.GetValue<bool>("DainnApplication:SeedDefaultAdmin"))
 {
     app.SeedDatabase();
+}
+
+// Product Catalog database migration
+if (app.Configuration.GetValue<bool>("DainnApplication:AutoMigrate", true))
+{
+    app.Services.MigrateProductCatalogDatabase();
+    if (app.Configuration.GetValue<bool>("DainnApplication:SeedDefaultAttributes", true))
+    {
+        app.Services.SeedSampleDataAsync().GetAwaiter().GetResult();
+    }
 }
 
 // Configure the HTTP request pipeline
