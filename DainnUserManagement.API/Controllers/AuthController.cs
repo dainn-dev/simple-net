@@ -29,16 +29,8 @@ namespace DainnUserManagement.API.Controllers;
 [Tags("Authentication")]
 [Produces("application/json")]
 [Consumes("application/json")]
-public class AuthController : ControllerBase
+public class AuthController(IUserService userService, ILogger<AuthController> logger) : ControllerBase
 {
-    private readonly IUserService _userService;
-    private readonly ILogger<AuthController> _logger;
-
-    public AuthController(IUserService userService, ILogger<AuthController> logger)
-    {
-        _userService = userService;
-        _logger = logger;
-    }
 
     /// <summary>
     /// Registers a new user account in the system.
@@ -70,16 +62,16 @@ public class AuthController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
     public async Task<ActionResult<UserProfileDto>> Register([FromBody] RegisterDto dto)
     {
-        _logger.LogDebug("Register request received: Email={Email}, FullName={FullName}", dto?.Email, dto?.FullName);
+        logger.LogDebug("Register request received: Email={Email}, FullName={FullName}", dto?.Email, dto?.FullName);
         
         if (!ModelState.IsValid)
         {
             var errors = ModelState.SelectMany(x => x.Value?.Errors.Select(e => $"{x.Key}: {e.ErrorMessage}") ?? Enumerable.Empty<string>());
-            _logger.LogWarning("ModelState is invalid. Errors: {Errors}", string.Join(", ", errors));
+            logger.LogWarning("ModelState is invalid. Errors: {Errors}", string.Join(", ", errors));
             return BadRequest(ModelState);
         }
         
-        var result = await _userService.RegisterAsync(dto!);
+        var result = await userService.RegisterAsync(dto!);
         return Ok(result);
     }
 
@@ -119,7 +111,7 @@ public class AuthController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status423Locked)]
     public async Task<ActionResult<TokenResponseDto>> Login([FromBody] LoginDto dto)
     {
-        var result = await _userService.LoginAsync(dto);
+        var result = await userService.LoginAsync(dto);
         return Ok(result);
     }
 
@@ -155,7 +147,7 @@ public class AuthController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<TokenResponseDto>> Refresh([FromBody] RefreshTokenDto dto)
     {
-        var result = await _userService.RefreshTokenAsync(dto);
+        var result = await userService.RefreshTokenAsync(dto);
         return Ok(result);
     }
 

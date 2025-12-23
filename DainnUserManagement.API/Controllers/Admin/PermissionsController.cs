@@ -28,14 +28,8 @@ namespace DainnUserManagement.API.Controllers.Admin;
 [Tags("Admin - Permissions")]
 [Produces("application/json")]
 [Consumes("application/json")]
-public class PermissionsController : ControllerBase
+public class PermissionsController(IPermissionService permissionService) : ControllerBase
 {
-    private readonly IPermissionService _permissionService;
-
-    public PermissionsController(IPermissionService permissionService)
-    {
-        _permissionService = permissionService;
-    }
 
     /// <summary>
     /// Gets all permissions for a specific user, including direct permissions and those inherited from roles.
@@ -80,7 +74,7 @@ public class PermissionsController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<List<string>>> GetUserPermissions(Guid id)
     {
-        var permissions = await _permissionService.GetUserPermissionsAsync(id);
+        var permissions = await permissionService.GetUserPermissionsAsync(id);
         return Ok(permissions);
     }
 }

@@ -23,6 +23,18 @@ builder.Services.AddSwaggerDocumentation(builder.Configuration);
 
 var app = builder.Build();
 
+// Database migration (if enabled) - MUST happen before any middleware that accesses the database
+if (app.Configuration.GetValue<bool>("UserManagement:AutoMigrateDatabase"))
+{
+    app.MigrateDatabase();
+}
+
+// Database seeding (if enabled) - MUST happen after migration
+if (app.Configuration.GetValue<bool>("UserManagement:SeedDefaultAdmin"))
+{
+    app.SeedDatabase();
+}
+
 // Configure the HTTP request pipeline
 // CRITICAL FIX: In .NET 6+, for endpoint routing with protected endpoints and API versioning:
 // The correct order MUST be:
@@ -63,18 +75,6 @@ app.UseSwaggerDocumentation();
 
 // Map additional endpoints (health checks, metrics)
 app.MapUserManagementEndpoints();
-
-// Database migration (if enabled)
-if (app.Configuration.GetValue<bool>("UserManagement:AutoMigrateDatabase"))
-{
-    app.MigrateDatabase();
-}
-
-// Database seeding (if enabled)
-if (app.Configuration.GetValue<bool>("UserManagement:SeedDefaultAdmin"))
-{
-    app.SeedDatabase();
-}
 
 
 

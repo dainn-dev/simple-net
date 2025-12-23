@@ -23,14 +23,8 @@ namespace DainnUserManagement.API.Controllers;
 [Tags("Email Verification")]
 [Produces("application/json")]
 [Consumes("application/json")]
-public class EmailController : ControllerBase
+public class EmailController(IUserService userService) : ControllerBase
 {
-    private readonly IUserService _userService;
-
-    public EmailController(IUserService userService)
-    {
-        _userService = userService;
-    }
 
     /// <summary>
     /// Confirms a user's email address using a confirmation token.
@@ -65,7 +59,7 @@ public class EmailController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult> ConfirmEmail([FromBody] ConfirmEmailDto dto)
     {
-        await _userService.ConfirmEmailAsync(dto);
+        await userService.ConfirmEmailAsync(dto);
         return Ok(new { message = "Email confirmed successfully" });
     }
 }

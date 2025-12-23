@@ -32,18 +32,8 @@ namespace DainnUserManagement.API.Controllers.Admin;
 [Tags("Admin - Roles")]
 [Produces("application/json")]
 [Consumes("application/json")]
-public class RolesController : ControllerBase
+public class RolesController(RoleManager<AppRole> roleManager, UserManager<AppUser> userManager, IRoleService roleService) : ControllerBase
 {
-    private readonly RoleManager<AppRole> _roleManager;
-    private readonly UserManager<AppUser> _userManager;
-    private readonly IRoleService _roleService;
-
-    public RolesController(RoleManager<AppRole> roleManager, UserManager<AppUser> userManager, IRoleService roleService)
-    {
-        _roleManager = roleManager;
-        _userManager = userManager;
-        _roleService = roleService;
-    }
 
     /// <summary>
     /// Gets all roles defined in the system.
@@ -75,7 +65,7 @@ public class RolesController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<List<RoleDto>>> GetAll()
     {
-        var roles = await _roleManager.Roles.ToListAsync();
+        var roles = await roleManager.Roles.ToListAsync();
         var roleDtos = roles.Select(r => new RoleDto
         {
             Id = r.Id,
@@ -128,7 +118,7 @@ public class RolesController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
     public async Task<ActionResult<RoleDto>> Create([FromBody] CreateRoleDto dto)
     {
-        var result = await _roleService.CreateRoleAsync(dto);
+        var result = await roleService.CreateRoleAsync(dto);
         return CreatedAtAction(nameof(GetAll), result);
     }
 
@@ -171,7 +161,7 @@ public class RolesController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Assign([FromBody] AssignRoleDto dto)
     {
-        await _roleService.AssignRoleAsync(dto);
+        await roleService.AssignRoleAsync(dto);
         return Ok(new { message = "Role assigned successfully" });
     }
 
@@ -217,19 +207,19 @@ public class RolesController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Remove([FromBody] AssignRoleDto dto)
     {
-        var user = await _userManager.FindByIdAsync(dto.UserId.ToString());
+        var user = await userManager.FindByIdAsync(dto.UserId.ToString());
         if (user == null)
         {
             return NotFound(new { message = "User not found" });
         }
 
-        var role = await _roleManager.FindByNameAsync(dto.RoleName);
+        var role = await roleManager.FindByNameAsync(dto.RoleName);
         if (role == null)
         {
             return NotFound(new { message = "Role not found" });
         }
 
-        var result = await _userManager.RemoveFromRoleAsync(user, dto.RoleName);
+        var result = await userManager.RemoveFromRoleAsync(user, dto.RoleName);
         if (!result.Succeeded)
         {
             return BadRequest(result.Errors);

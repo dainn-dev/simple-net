@@ -27,14 +27,8 @@ namespace DainnUserManagement.API.Controllers;
 [Tags("Password Recovery")]
 [Produces("application/json")]
 [Consumes("application/json")]
-public class PasswordController : ControllerBase
+public class PasswordController(IUserService userService) : ControllerBase
 {
-    private readonly IUserService _userService;
-
-    public PasswordController(IUserService userService)
-    {
-        _userService = userService;
-    }
 
     /// <summary>
     /// Initiates a password reset flow by sending a reset token to the user's email address.
@@ -70,7 +64,7 @@ public class PasswordController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
     {
-        await _userService.ForgotPasswordAsync(dto);
+        await userService.ForgotPasswordAsync(dto);
         return Ok(new { message = "If the email exists, a password reset link has been sent" });
     }
 
@@ -112,7 +106,7 @@ public class PasswordController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
     {
-        await _userService.ResetPasswordAsync(dto);
+        await userService.ResetPasswordAsync(dto);
         return Ok(new { message = "Password reset successfully" });
     }
 }

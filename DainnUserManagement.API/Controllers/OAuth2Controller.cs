@@ -35,18 +35,10 @@ namespace DainnUserManagement.API.Controllers;
 [ApiVersion("1.0")]
 [Tags("OAuth2")]
 [Produces("application/json")]
-public class OAuth2Controller : ControllerBase
+public class OAuth2Controller(
+    IOAuth2Service oauth2Service,
+    ILogger<OAuth2Controller> logger) : ControllerBase
 {
-    private readonly IOAuth2Service _oauth2Service;
-    private readonly ILogger<OAuth2Controller> _logger;
-
-    public OAuth2Controller(
-        IOAuth2Service oauth2Service,
-        ILogger<OAuth2Controller> logger)
-    {
-        _oauth2Service = oauth2Service;
-        _logger = logger;
-    }
 
     /// <summary>
     /// Initiates OAuth2 authentication flow with the specified external provider.
@@ -140,7 +132,7 @@ public class OAuth2Controller : ControllerBase
             var authResult = await HttpContext.AuthenticateAsync(provider);
             if (!authResult.Succeeded)
             {
-                _logger.LogWarning("{Provider} OAuth2 authentication failed", provider);
+                logger.LogWarning("{Provider} OAuth2 authentication failed", provider);
                 return Unauthorized(new ProblemDetails
                 {
                     Title = "Authentication failed",
@@ -150,7 +142,7 @@ public class OAuth2Controller : ControllerBase
             }
 
             // Process external login using the service
-            var response = await _oauth2Service.ProcessExternalLoginAsync(provider, authResult.Principal!);
+            var response = await oauth2Service.ProcessExternalLoginAsync(provider, authResult.Principal!);
 
             // Sign out from the external authentication scheme
             await HttpContext.SignOutAsync(provider);
@@ -159,7 +151,7 @@ public class OAuth2Controller : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            _logger.LogError(ex, "Invalid operation during {Provider} OAuth2 callback", provider);
+            logger.LogError(ex, "Invalid operation during {Provider} OAuth2 callback", provider);
             return BadRequest(new ProblemDetails
             {
                 Title = "Invalid authentication",
@@ -169,7 +161,7 @@ public class OAuth2Controller : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during {Provider} OAuth2 callback", provider);
+            logger.LogError(ex, "Error during {Provider} OAuth2 callback", provider);
             return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
             {
                 Title = "Internal server error",

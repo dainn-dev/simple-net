@@ -33,20 +33,9 @@ namespace DainnUserManagement.API.Controllers.Admin;
 [Tags("Admin - Users")]
 [Produces("application/json")]
 [Consumes("application/json")]
-public class UsersController : ControllerBase
+public class UsersController(UserManager<AppUser> userManager, IUserService userService, IPermissionService permissionService, IRoleService roleService)
+    : ControllerBase
 {
-    private readonly UserManager<AppUser> _userManager;
-    private readonly IUserService _userService;
-    private readonly IPermissionService _permissionService;
-    private readonly IRoleService _roleService;
-
-    public UsersController(UserManager<AppUser> userManager, IUserService userService, IPermissionService permissionService, IRoleService roleService)
-    {
-        _userManager = userManager;
-        _userService = userService;
-        _permissionService = permissionService;
-        _roleService = roleService;
-    }
 
     /// <summary>
     /// Gets a paginated list of all users in the system.
@@ -83,18 +72,18 @@ public class UsersController : ControllerBase
     public async Task<ActionResult<PaginatedResponse<UserProfileDto>>> GetAll(int page = 1, int pageSize = 20)
     {
         var skip = (page - 1) * pageSize;
-        var users = await _userManager.Users
+        var users = await userManager.Users
             .Skip(skip)
             .Take(pageSize)
             .ToListAsync();
 
-        var totalCount = await _userManager.Users.CountAsync();
+        var totalCount = await userManager.Users.CountAsync();
 
         var userDtos = new List<UserProfileDto>();
         foreach (var user in users)
         {
-            var roles = await _roleService.GetUserRolesAsync(user.Id);
-            var permissions = await _permissionService.GetUserPermissionsAsync(user.Id);
+            var roles = await roleService.GetUserRolesAsync(user.Id);
+            var permissions = await permissionService.GetUserPermissionsAsync(user.Id);
             
             userDtos.Add(new UserProfileDto
             {
@@ -156,7 +145,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserProfileDto>> GetById(Guid id)
     {
-        var result = await _userService.GetUserProfileAsync(id);
+        var result = await userService.GetUserProfileAsync(id);
         return Ok(result);
     }
 
@@ -194,7 +183,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserProfileDto>> Update(Guid id, [FromBody] UpdateProfileDto dto)
     {
-        var result = await _userService.UpdateProfileAsync(id, dto);
+        var result = await userService.UpdateProfileAsync(id, dto);
         return Ok(result);
     }
 
@@ -239,13 +228,13 @@ public class UsersController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Delete(Guid id)
     {
-        var user = await _userManager.FindByIdAsync(id.ToString());
+        var user = await userManager.FindByIdAsync(id.ToString());
         if (user == null)
         {
             return NotFound();
         }
 
-        var result = await _userManager.DeleteAsync(user);
+        var result = await userManager.DeleteAsync(user);
         if (!result.Succeeded)
         {
             return BadRequest(result.Errors);
@@ -292,7 +281,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult> LockUser(Guid id, [FromBody] LockUserDto dto)
     {
-        await _userService.LockUserAsync(dto);
+        await userService.LockUserAsync(dto);
         return Ok(new { message = "User locked successfully" });
     }
 
@@ -334,7 +323,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<List<ExportUserDto>>> ExportUsers()
     {
-        var users = await _userService.ExportUsersAsync();
+        var users = await userService.ExportUsersAsync();
         return Ok(users);
     }
 
@@ -386,7 +375,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<List<ExportUserDto>>> ImportUsers([FromBody] List<ImportUserDto> users, [FromQuery] bool skipExisting = true)
     {
-        var importedUsers = await _userService.ImportUsersAsync(users, skipExisting);
+        var importedUsers = await userService.ImportUsersAsync(users, skipExisting);
         return Ok(new { imported = importedUsers.Count, users = importedUsers });
     }
 }

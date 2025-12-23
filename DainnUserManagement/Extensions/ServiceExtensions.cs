@@ -34,6 +34,7 @@ using DainnUserManagement.Infrastructure.Middleware;
 using DainnUserManagement.Infrastructure.Telemetry;
 using FluentValidation;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using System.Data.Common;
 #if !DISABLE_MYSQL
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 #endif
@@ -458,19 +459,43 @@ public static class ServiceExtensions
             var providerLower = options.Provider.ToLowerInvariant();
             if (providerLower == "postgresql" || providerLower == "npgsql")
             {
-                // Check if tables exist by trying to query the AspNetRoles table
+                // Check if tables exist using database metadata (more reliable than querying)
                 bool tablesExist = false;
                 try
                 {
                     if (context.Database.CanConnect())
                     {
-                        // Try to query a table to see if schema exists
-                        var _ = context.Set<AppRole>().Count();
-                        tablesExist = true;
+                        // Use raw SQL to check if the table exists without throwing exceptions
+                        var connection = context.Database.GetDbConnection();
+                        if (connection.State != System.Data.ConnectionState.Open)
+                        {
+                            connection.Open();
+                        }
+                        try
+                        {
+                            using var command = connection.CreateCommand();
+                            command.CommandText = @"
+                                SELECT EXISTS (
+                                    SELECT FROM information_schema.tables 
+                                    WHERE table_schema = 'public' 
+                                    AND table_name = 'AspNetRoles'
+                                );";
+                            var result = command.ExecuteScalar();
+                            tablesExist = result != null && Convert.ToBoolean(result);
+                        }
+                        finally
+                        {
+                            if (connection.State == System.Data.ConnectionState.Open)
+                            {
+                                connection.Close();
+                            }
+                        }
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    // If we can't check, assume tables don't exist
+                    logger.LogDebug(ex, "Could not check if tables exist, assuming they need to be created.");
                     tablesExist = false;
                 }
                 
@@ -491,15 +516,38 @@ public static class ServiceExtensions
                 // Migrations created for SQLite/PostgreSQL won't work with SQL Server
                 try
                 {
-                    // Check if tables already exist
+                    // Check if tables already exist using database metadata
                     bool tablesExist = false;
                     if (context.Database.CanConnect())
                     {
                         try
                         {
-                            var _ = context.Set<AppRole>().Count();
-                            tablesExist = true;
-                            logger.LogInformation("Database and tables already exist for SQL Server. Skipping schema creation.");
+                            var connection = context.Database.GetDbConnection();
+                            if (connection.State != System.Data.ConnectionState.Open)
+                            {
+                                connection.Open();
+                            }
+                            try
+                            {
+                                using var command = connection.CreateCommand();
+                                command.CommandText = @"
+                                    SELECT CASE 
+                                        WHEN EXISTS (
+                                            SELECT * FROM INFORMATION_SCHEMA.TABLES 
+                                            WHERE TABLE_NAME = 'AspNetRoles'
+                                        ) THEN 1 
+                                        ELSE 0 
+                                    END;";
+                                var result = command.ExecuteScalar();
+                                tablesExist = result != null && Convert.ToInt32(result) == 1;
+                            }
+                            finally
+                            {
+                                if (connection.State == System.Data.ConnectionState.Open)
+                                {
+                                    connection.Close();
+                                }
+                            }
                         }
                         catch
                         {
@@ -512,6 +560,10 @@ public static class ServiceExtensions
                         logger.LogInformation("Creating database schema for SQL Server...");
                         context.Database.EnsureCreated();
                         logger.LogInformation("Database schema created successfully for SQL Server.");
+                    }
+                    else
+                    {
+                        logger.LogInformation("Database and tables already exist for SQL Server. Skipping schema creation.");
                     }
                 }
                 catch (Exception createEx)

@@ -23,18 +23,8 @@ namespace DainnUserManagement.API.Controllers;
 [Tags("Account")]
 [Produces("application/json")]
 [Consumes("application/json")]
-public class AccountController : ControllerBase
+public class AccountController(IUserService userService, ITwoFactorService twoFactorService, UserManager<AppUser> userManager) : ControllerBase
 {
-    private readonly IUserService _userService;
-    private readonly ITwoFactorService _twoFactorService;
-    private readonly UserManager<AppUser> _userManager;
-
-    public AccountController(IUserService userService, ITwoFactorService twoFactorService, UserManager<AppUser> userManager)
-    {
-        _userService = userService;
-        _twoFactorService = twoFactorService;
-        _userManager = userManager;
-    }
 
     /// <summary>
     /// Gets the current authenticated user's profile information.
@@ -70,7 +60,7 @@ public class AccountController : ControllerBase
             return Unauthorized();
         }
 
-        var result = await _userService.GetUserProfileAsync(userId.Value);
+        var result = await userService.GetUserProfileAsync(userId.Value);
         return Ok(result);
     }
 
@@ -108,7 +98,7 @@ public class AccountController : ControllerBase
             return Unauthorized();
         }
 
-        var result = await _userService.UpdateProfileAsync(userId.Value, dto);
+        var result = await userService.UpdateProfileAsync(userId.Value, dto);
         return Ok(result);
     }
 
@@ -147,7 +137,7 @@ public class AccountController : ControllerBase
             return Unauthorized();
         }
 
-        await _userService.ChangePasswordAsync(userId.Value, dto);
+        await userService.ChangePasswordAsync(userId.Value, dto);
         return Ok(new { message = "Password changed successfully" });
     }
 
@@ -183,17 +173,17 @@ public class AccountController : ControllerBase
             return Unauthorized();
         }
 
-        var user = await _userManager.FindByIdAsync(userId.Value.ToString());
+        var user = await userManager.FindByIdAsync(userId.Value.ToString());
         if (user == null)
         {
             return NotFound();
         }
 
-        var result = await _twoFactorService.Setup2FAAsync(user);
+        var result = await twoFactorService.Setup2FAAsync(user);
         
         // Enable 2FA on the user
         user.TwoFactorEnabled = true;
-        await _userManager.UpdateAsync(user);
+        await userManager.UpdateAsync(user);
 
         return Ok(result);
     }
@@ -235,13 +225,13 @@ public class AccountController : ControllerBase
             return Unauthorized();
         }
 
-        var user = await _userManager.FindByIdAsync(userId.Value.ToString());
+        var user = await userManager.FindByIdAsync(userId.Value.ToString());
         if (user == null)
         {
             return NotFound();
         }
 
-        var isValid = await _twoFactorService.Verify2FACodeAsync(user, dto.Code);
+        var isValid = await twoFactorService.Verify2FACodeAsync(user, dto.Code);
         if (!isValid)
         {
             return BadRequest(new { message = "Invalid 2FA code" });

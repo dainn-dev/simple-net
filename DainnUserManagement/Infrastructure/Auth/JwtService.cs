@@ -15,27 +15,16 @@ namespace DainnUserManagement.Infrastructure.Auth;
 /// <summary>
 /// Service for JWT token generation and refresh token management.
 /// </summary>
-public class JwtService : IAuthService
+public sealed class JwtService(AppDbContext context, IPermissionService permissionService, IRoleService roleService, UserManagementOptions options)
+    : IAuthService
 {
-    private readonly AppDbContext _context;
-    private readonly IPermissionService _permissionService;
-    private readonly IRoleService _roleService;
-    private readonly UserManagementOptions _options;
-
-    public JwtService(AppDbContext context, IPermissionService permissionService, IRoleService roleService, UserManagementOptions options)
-    {
-        _context = context;
-        _permissionService = permissionService;
-        _roleService = roleService;
-        _options = options;
-    }
 
     /// <summary>
     /// Generates a JWT access token for a user.
     /// </summary>
     /// <param name="user">The user for whom to generate the token.</param>
     /// <returns>A task that completes with the JWT access token.</returns>
-    public virtual async Task<string> GenerateJwtAsync(AppUser user)
+    public async Task<string> GenerateJwtAsync(AppUser user)
     {
         var claims = new List<Claim>
         {
@@ -45,25 +34,19 @@ public class JwtService : IAuthService
         };
 
         // Add roles
-        var roles = await _roleService.GetUserRolesAsync(user.Id);
-        foreach (var role in roles)
-        {
-            claims.Add(new Claim(ClaimTypes.Role, role));
-        }
+        var roles = await roleService.GetUserRolesAsync(user.Id);
+        claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
         // Add permissions
-        var permissions = await _permissionService.GetUserPermissionsAsync(user.Id);
-        foreach (var permission in permissions)
-        {
-            claims.Add(new Claim("permission", permission));
-        }
+        var permissions = await permissionService.GetUserPermissionsAsync(user.Id);
+        claims.AddRange(permissions.Select(permission => new Claim("permission", permission)));
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.JwtSecret));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.JwtSecret));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
             claims: claims,
-            expires: DateTime.UtcNow.AddHours(_options.JwtSettings.AccessTokenHours),
+            expires: DateTime.UtcNow.AddHours(options.JwtSettings.AccessTokenHours),
             signingCredentials: creds
         );
 
@@ -75,7 +58,7 @@ public class JwtService : IAuthService
     /// </summary>
     /// <param name="userId">The unique identifier of the user.</param>
     /// <returns>A task that completes with the generated refresh token.</returns>
-    public virtual async Task<RefreshToken> GenerateRefreshTokenAsync(Guid userId)
+    public async Task<RefreshToken> GenerateRefreshTokenAsync(Guid userId)
     {
         var randomBytes = new byte[32];
         using var rng = RandomNumberGenerator.Create();
@@ -86,12 +69,12 @@ public class JwtService : IAuthService
         {
             Token = tokenValue,
             UserId = userId,
-            Expires = DateTime.UtcNow.AddDays(_options.JwtSettings.RefreshTokenDays),
+            Expires = DateTime.UtcNow.AddDays(options.JwtSettings.RefreshTokenDays),
             IsRevoked = false
         };
 
-        _context.RefreshTokens.Add(refreshToken);
-        await _context.SaveChangesAsync();
+        context.RefreshTokens.Add(refreshToken);
+        await context.SaveChangesAsync();
 
         return refreshToken;
     }
@@ -101,9 +84,9 @@ public class JwtService : IAuthService
     /// </summary>
     /// <param name="refreshToken">The refresh token to validate.</param>
     /// <returns>The user associated with the valid token, or null if invalid.</returns>
-    public virtual async Task<AppUser?> ValidateRefreshTokenAsync(string refreshToken)
+    public async Task<AppUser?> ValidateRefreshTokenAsync(string refreshToken)
     {
-        var token = await _context.RefreshTokens
+        var token = await context.RefreshTokens
             .Include(rt => rt.User)
             .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
 
@@ -120,9 +103,9 @@ public class JwtService : IAuthService
     /// </summary>
     /// <param name="userId">The unique identifier of the user.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    public virtual async Task RevokeAllTokensAsync(Guid userId)
+    public async Task RevokeAllTokensAsync(Guid userId)
     {
-        var tokens = await _context.RefreshTokens
+        var tokens = await context.RefreshTokens
             .Where(rt => rt.UserId == userId && !rt.IsRevoked)
             .ToListAsync();
 
@@ -131,7 +114,7 @@ public class JwtService : IAuthService
             token.IsRevoked = true;
         }
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
     }
 }
 
