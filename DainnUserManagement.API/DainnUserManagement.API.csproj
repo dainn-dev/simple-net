@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DainnUser.PostgreSQL\DainnUser.PostgreSQL.csproj" />
     <ProjectReference Include="..\DainnProductEAV.PostgreSQL\DainnProductEAV.PostgreSQL.csproj" />
+    <ProjectReference Include="..\DainnCommon\DainnCommon.csproj" />
   </ItemGroup>
 
   <ItemGroup>

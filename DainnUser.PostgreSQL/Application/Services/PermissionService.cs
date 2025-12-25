@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using DainnUser.PostgreSQL.Application.Interfaces;
 using DainnUser.PostgreSQL.Domain.Entities;
-using DainnUser.PostgreSQL.Infrastructure.Exceptions;
+using DainnCommon.Exceptions;
 using DainnUser.PostgreSQL.Infrastructure.Persistence;
 
 namespace DainnUser.PostgreSQL.Application.Services;

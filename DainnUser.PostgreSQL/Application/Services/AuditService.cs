@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using DainnUser.PostgreSQL.Application.Interfaces;
+using DainnUser.PostgreSQL.Application.Helpers;
 using DainnUser.PostgreSQL.Domain.Entities;
 using DainnUser.PostgreSQL.Infrastructure.Persistence;
 
@@ -26,8 +27,9 @@ public class AuditService : IAuditService
     /// <param name="userId">The unique identifier of the user who performed the action.</param>
     /// <param name="details">Optional additional details about the action.</param>
     /// <param name="ipAddress">The IP address from which the action was performed.</param>
+    /// <param name="deviceInfo">Optional device information from the client.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    public virtual async Task LogAsync(string action, Guid? userId, string? details, string ipAddress)
+    public virtual async Task LogAsync(string action, Guid? userId, string? details, string ipAddress, DeviceInfo? deviceInfo = null)
     {
         var auditLog = new AuditLog
         {
@@ -35,6 +37,11 @@ public class AuditService : IAuditService
             UserId = userId,
             Details = details,
             IpAddress = ipAddress,
+            UserAgent = deviceInfo?.UserAgent,
+            DeviceType = deviceInfo?.DeviceType,
+            Browser = deviceInfo?.Browser,
+            OperatingSystem = deviceInfo?.OperatingSystem,
+            DeviceName = deviceInfo?.DeviceName,
             Timestamp = DateTime.UtcNow
         };
 
@@ -82,7 +89,24 @@ public class AuditService : IAuditService
     public virtual async Task LogAsync(string action, Guid? userId, string? details = null)
     {
         var ipAddress = GetClientIpAddress();
-        await LogAsync(action, userId, details, ipAddress);
+        var deviceInfo = GetDeviceInfo();
+        await LogAsync(action, userId, details, ipAddress, deviceInfo);
+    }
+
+    /// <summary>
+    /// Gets device information from the HTTP context.
+    /// </summary>
+    /// <returns>Device information extracted from the User-Agent header, or null if not available.</returns>
+    protected virtual DeviceInfo? GetDeviceInfo()
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext == null)
+        {
+            return null;
+        }
+
+        var userAgent = httpContext.Request.Headers["User-Agent"].ToString();
+        return DeviceInfoHelper.ParseUserAgent(userAgent);
     }
 }
 

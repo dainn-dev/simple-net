@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using DainnProductEAV.PostgreSQL.Services;
 using DainnProductEAV.PostgreSQL.Entities;
 using DainnUserManagement.API.Dtos.Catalog;
+using DainnCommon.Exceptions;
 
 namespace DainnUserManagement.API.Controllers.Catalog;
 
@@ -111,13 +112,21 @@ public class AttributesController : ControllerBase
 
             return CreatedAtAction(nameof(GetAttributeById), new { id = attribute.AttributeId }, MapToAttributeDto(attribute));
         }
+        catch (ValidationException)
+        {
+            throw; // Let middleware handle the response
+        }
+        catch (BusinessRuleException)
+        {
+            throw; // Let middleware handle the response
+        }
         catch (ArgumentException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            throw new ValidationException(ex.Message);
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            throw new BusinessRuleException(ex.Message, ex);
         }
     }
 

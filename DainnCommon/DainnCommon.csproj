@@ -6,12 +6,11 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageId>DainnProductEAV.PostgreSQL</PackageId>
-    <Version>1.0.0</Version>
+    <Version>2.0.0</Version>
     <Authors>Dainn</Authors>
-    <Description>A .NET 8 class library implementing the Entity-Attribute-Value (EAV) pattern for product catalog management. Provides a flexible, extensible product catalog system that allows adding custom attributes without modifying the database schema.</Description>
-    <PackageTags>aspnetcore;entityframeworkcore;eav;product-catalog;entity-attribute-value;database;postgresql;sqlite;sqlserver;mysql</PackageTags>
-    <RepositoryUrl>https://github.com/yourname/DainnProductEAV.PostgreSQL</RepositoryUrl>
+    <Description>Shared common functionality library for Dainn projects. Includes exception handling, middleware, database provider configuration, and Entity Framework Core extensions.</Description>
+    <PackageTags>aspnetcore;entityframeworkcore;exceptions;middleware;database;common;shared</PackageTags>
+    <RepositoryUrl>https://github.com/yourname/DainnCommon</RepositoryUrl>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
@@ -21,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -29,15 +29,11 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.11" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\DainnCommon\DainnCommon.csproj" />
   </ItemGroup>
 
 </Project>

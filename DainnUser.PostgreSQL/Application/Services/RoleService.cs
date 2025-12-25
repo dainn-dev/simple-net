@@ -5,7 +5,7 @@ using DainnUser.PostgreSQL.Application.Dtos;
 using DainnUser.PostgreSQL.Application.Events;
 using DainnUser.PostgreSQL.Application.Interfaces;
 using DainnUser.PostgreSQL.Domain.Entities;
-using DainnUser.PostgreSQL.Infrastructure.Exceptions;
+using DainnCommon.Exceptions;
 using DainnUser.PostgreSQL.Infrastructure.Persistence;
 
 namespace DainnUser.PostgreSQL.Application.Services;

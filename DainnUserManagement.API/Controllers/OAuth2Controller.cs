@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using DainnUser.PostgreSQL.Application.Interfaces;
 using DainnUser.PostgreSQL.Application.Dtos;
+using DainnCommon.Exceptions;
 
 namespace DainnUserManagement.API.Controllers;
 
@@ -149,15 +150,15 @@ public class OAuth2Controller(
 
             return Ok(response);
         }
+        catch (BusinessRuleException ex)
+        {
+            logger.LogError(ex, "Business rule violation during {Provider} OAuth2 callback", provider);
+            throw; // Let middleware handle the response
+        }
         catch (InvalidOperationException ex)
         {
             logger.LogError(ex, "Invalid operation during {Provider} OAuth2 callback", provider);
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid authentication",
-                Detail = ex.Message,
-                Status = StatusCodes.Status400BadRequest
-            });
+            throw new BusinessRuleException($"Invalid authentication: {ex.Message}", ex);
         }
         catch (Exception ex)
         {

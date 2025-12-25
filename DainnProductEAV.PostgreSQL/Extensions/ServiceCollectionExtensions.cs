@@ -5,6 +5,7 @@ using DainnProductEAV.PostgreSQL.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using DainnCommon.Extensions;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 namespace DainnProductEAV.PostgreSQL.Extensions;
@@ -116,8 +117,7 @@ public static class ServiceCollectionExtensions
         // Register DbContext with the appropriate provider
         services.AddDbContext<ProductCatalogDbContext>(dbOptions =>
         {
-            ConfigureProvider(dbOptions, options);
-            options.ConfigureDbContext?.Invoke(dbOptions);
+            dbOptions.ConfigureDatabaseProvider(options.Provider, options.ConnectionString, options.ConfigureDbContext);
         });
 
         // Register Memory Cache
@@ -139,66 +139,6 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    /// <summary>
-    /// Configures the database provider based on options.
-    /// </summary>
-    private static void ConfigureProvider(DbContextOptionsBuilder dbOptions, ProductCatalogOptions options)
-    {
-        var provider = options.Provider.ToLowerInvariant();
-
-        switch (provider)
-        {
-            case "sqlite":
-                dbOptions.UseSqlite(options.ConnectionString);
-                break;
-
-            case "sqlserver":
-                dbOptions.UseSqlServer(options.ConnectionString, sqlOptions =>
-                {
-                    sqlOptions.EnableRetryOnFailure(
-                        maxRetryCount: 3,
-                        maxRetryDelay: TimeSpan.FromSeconds(10),
-                        errorNumbersToAdd: null);
-                });
-                break;
-
-            case "postgresql":
-            case "npgsql":
-            case "postgres":
-                dbOptions.UseNpgsql(options.ConnectionString, npgsqlOptions =>
-                {
-                    npgsqlOptions.EnableRetryOnFailure(
-                        maxRetryCount: 3,
-                        maxRetryDelay: TimeSpan.FromSeconds(10),
-                        errorCodesToAdd: null);
-                });
-                break;
-
-            case "mysql":
-            case "mariadb":
-                dbOptions.UseMySql(
-                    options.ConnectionString,
-                    ServerVersion.AutoDetect(options.ConnectionString),
-                    mysqlOptions =>
-                    {
-                        mysqlOptions.EnableRetryOnFailure(
-                            maxRetryCount: 3,
-                            maxRetryDelay: TimeSpan.FromSeconds(10),
-                            errorNumbersToAdd: null);
-                    });
-                break;
-
-            case "inmemory":
-                dbOptions.UseInMemoryDatabase(options.ConnectionString);
-                break;
-
-            default:
-                throw new InvalidOperationException(
-                    $"Invalid or unsupported database provider: '{options.Provider}'. " +
-                    $"Supported providers are: sqlite, sqlserver, postgresql, npgsql, postgres, mysql, mariadb, inmemory. " +
-                    $"Please set the 'DainnApplication:Provider' configuration to one of these values.");
-        }
-    }
 
     /// <summary>
     /// Validates the ProductCatalog configuration.
@@ -267,8 +207,7 @@ public static class ServiceCollectionExtensions
 
         services.AddDbContext<ProductCatalogDbContext>(dbOptions =>
         {
-            ConfigureProvider(dbOptions, options);
-            options.ConfigureDbContext?.Invoke(dbOptions);
+            dbOptions.ConfigureDatabaseProvider(options.Provider, options.ConnectionString, options.ConfigureDbContext);
         });
 
         services.AddMemoryCache();
@@ -321,8 +260,7 @@ public static class ServiceCollectionExtensions
 
         services.AddDbContext<ProductCatalogDbContext>(dbOptions =>
         {
-            ConfigureProvider(dbOptions, options);
-            options.ConfigureDbContext?.Invoke(dbOptions);
+            dbOptions.ConfigureDatabaseProvider(options.Provider, options.ConnectionString, options.ConfigureDbContext);
         });
 
         services.AddMemoryCache();

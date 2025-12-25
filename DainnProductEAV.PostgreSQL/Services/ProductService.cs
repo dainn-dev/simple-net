@@ -2,6 +2,7 @@ using DainnProductEAV.PostgreSQL.Contexts;
 using DainnProductEAV.PostgreSQL.Entities;
 using DainnProductEAV.PostgreSQL.Repositories;
 using Microsoft.EntityFrameworkCore;
+using DainnCommon.Exceptions;
 
 namespace DainnProductEAV.PostgreSQL.Services;
 
@@ -42,7 +43,7 @@ public class ProductService : IProductService
         var existing = await _productRepository.GetBySkuAsync(sku, cancellationToken: cancellationToken);
         if (existing != null)
         {
-            throw new InvalidOperationException($"Product with SKU '{sku}' already exists.");
+            throw new BusinessRuleException($"Product with SKU '{sku}' already exists.");
         }
 
         var product = new ProductEntity

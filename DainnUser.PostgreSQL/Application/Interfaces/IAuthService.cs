@@ -18,8 +18,10 @@ public interface IAuthService
     /// Generates a refresh token.
     /// </summary>
     /// <param name="userId">The unique identifier of the user.</param>
+    /// <param name="ipAddress">Optional IP address from which the token is being generated.</param>
+    /// <param name="deviceInfo">Optional device information from the client.</param>
     /// <returns>A task that completes with the generated refresh token.</returns>
-    Task<RefreshToken> GenerateRefreshTokenAsync(Guid userId);
+    Task<RefreshToken> GenerateRefreshTokenAsync(Guid userId, string? ipAddress = null, Application.Helpers.DeviceInfo? deviceInfo = null);
 
     /// <summary>
     /// Validates a refresh token and returns the associated user.

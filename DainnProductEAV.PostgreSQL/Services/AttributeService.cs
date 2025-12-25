@@ -1,5 +1,6 @@
 using DainnProductEAV.PostgreSQL.Entities;
 using DainnProductEAV.PostgreSQL.Repositories;
+using DainnCommon.Exceptions;
 
 namespace DainnProductEAV.PostgreSQL.Services;
 
@@ -51,20 +52,20 @@ public class AttributeService : IAttributeService
         // Validate backend type
         if (!ValidBackendTypes.Contains(backendType.ToLowerInvariant()))
         {
-            throw new ArgumentException($"Invalid backend type: {backendType}. Valid types are: {string.Join(", ", ValidBackendTypes)}");
+            throw new ValidationException($"Invalid backend type: {backendType}. Valid types are: {string.Join(", ", ValidBackendTypes)}");
         }
 
         // Validate frontend input
         if (!ValidFrontendInputs.Contains(frontendInput.ToLowerInvariant()))
         {
-            throw new ArgumentException($"Invalid frontend input: {frontendInput}. Valid inputs are: {string.Join(", ", ValidFrontendInputs)}");
+            throw new ValidationException($"Invalid frontend input: {frontendInput}. Valid inputs are: {string.Join(", ", ValidFrontendInputs)}");
         }
 
         // Check for duplicate attribute code
         var existing = await _attributeRepository.GetByCodeAsync(attributeCode, cancellationToken);
         if (existing != null)
         {
-            throw new InvalidOperationException($"Attribute with code '{attributeCode}' already exists.");
+            throw new BusinessRuleException($"Attribute with code '{attributeCode}' already exists.");
         }
 
         var attribute = new EavAttribute

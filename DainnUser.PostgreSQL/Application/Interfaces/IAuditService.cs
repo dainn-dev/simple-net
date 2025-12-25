@@ -1,3 +1,5 @@
+using DainnUser.PostgreSQL.Application.Helpers;
+
 namespace DainnUser.PostgreSQL.Application.Interfaces;
 
 /// <summary>
@@ -12,8 +14,9 @@ public interface IAuditService
     /// <param name="userId">The unique identifier of the user who performed the action.</param>
     /// <param name="details">Optional additional details about the action.</param>
     /// <param name="ipAddress">The IP address from which the action was performed.</param>
+    /// <param name="deviceInfo">Optional device information from the client.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task LogAsync(string action, Guid? userId, string? details, string ipAddress);
+    Task LogAsync(string action, Guid? userId, string? details, string ipAddress, DeviceInfo? deviceInfo = null);
 
     /// <summary>
     /// Logs an audit event asynchronously using the client IP from HTTP context.

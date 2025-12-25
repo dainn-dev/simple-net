@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 using DainnUser.PostgreSQL.Application.Dtos;
 using DainnUser.PostgreSQL.Application.Interfaces;
+using DainnUser.PostgreSQL.Application.Helpers;
 using DainnUser.PostgreSQL.Domain.Entities;
 
 namespace DainnUser.PostgreSQL.Application.Services;
@@ -15,15 +17,18 @@ public class OAuth2Service : IOAuth2Service
     private readonly UserManager<AppUser> _userManager;
     private readonly IAuthService _authService;
     private readonly ILogger<OAuth2Service> _logger;
+    private readonly IHttpContextAccessor? _httpContextAccessor;
 
     public OAuth2Service(
         UserManager<AppUser> userManager,
         IAuthService authService,
-        ILogger<OAuth2Service> logger)
+        ILogger<OAuth2Service> logger,
+        IHttpContextAccessor? httpContextAccessor = null)
     {
         _userManager = userManager;
         _authService = authService;
         _logger = logger;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     /// <summary>
@@ -93,9 +98,13 @@ public class OAuth2Service : IOAuth2Service
             }
         }
 
+        // Get client information for device tracking
+        var ipAddress = GetClientIpAddress();
+        var deviceInfo = GetDeviceInfo();
+
         // Generate JWT tokens
         var accessToken = await _authService.GenerateJwtAsync(user);
-        var refreshToken = await _authService.GenerateRefreshTokenAsync(user.Id);
+        var refreshToken = await _authService.GenerateRefreshTokenAsync(user.Id, ipAddress, deviceInfo);
 
         // Map user to profile DTO
         var userProfile = new UserProfileDto
@@ -188,6 +197,52 @@ public class OAuth2Service : IOAuth2Service
         }
 
         return user;
+    }
+
+    /// <summary>
+    /// Gets the client IP address from the HTTP context.
+    /// </summary>
+    /// <returns>The client IP address, or null if not available.</returns>
+    private string? GetClientIpAddress()
+    {
+        if (_httpContextAccessor?.HttpContext == null)
+        {
+            return null;
+        }
+
+        var httpContext = _httpContextAccessor.HttpContext;
+
+        // Check for forwarded IP address (from proxies/load balancers)
+        var forwardedFor = httpContext.Request.Headers["X-Forwarded-For"].ToString();
+        if (!string.IsNullOrEmpty(forwardedFor))
+        {
+            // X-Forwarded-For can contain multiple IPs, take the first one
+            var ips = forwardedFor.Split(',');
+            return ips[0].Trim();
+        }
+
+        var realIp = httpContext.Request.Headers["X-Real-IP"].ToString();
+        if (!string.IsNullOrEmpty(realIp))
+        {
+            return realIp;
+        }
+
+        return httpContext.Connection.RemoteIpAddress?.ToString();
+    }
+
+    /// <summary>
+    /// Gets device information from the HTTP context.
+    /// </summary>
+    /// <returns>Device information extracted from the User-Agent header, or null if not available.</returns>
+    private DeviceInfo? GetDeviceInfo()
+    {
+        if (_httpContextAccessor?.HttpContext == null)
+        {
+            return null;
+        }
+
+        var userAgent = _httpContextAccessor.HttpContext.Request.Headers["User-Agent"].ToString();
+        return DeviceInfoHelper.ParseUserAgent(userAgent);
     }
 }
 

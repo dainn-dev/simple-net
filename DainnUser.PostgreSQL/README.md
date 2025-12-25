@@ -10,7 +10,9 @@ A comprehensive, extensible user management library for ASP.NET Core APIs with s
 - **Role-Based Authorization**: Roles and permissions system with flexible assignment
 - **Two-Factor Authentication (2FA)**: TOTP-based 2FA using QR codes for authenticator apps
 - **Account Security**: Login lockout, failed login attempt tracking, password complexity
-- **Audit Logging**: Comprehensive audit trail for all user actions
+- **Audit Logging**: Comprehensive audit trail for all user actions with device and IP tracking
+- **Device Tracking**: Automatic device information detection (device name, type, browser, OS, IP address)
+- **Session Management**: Active session tracking with device information for security monitoring
 - **Email Services**: Extensible email service interface for notifications (password reset, email confirmation, etc.)
 
 ### Database Support
@@ -287,8 +289,8 @@ Both accounts are created only if they don't already exist. If accounts exist, t
 - **AppRole**: Role entity with permissions and timestamps
 - **Permission**: Granular permissions that can be assigned to roles
 - **RolePermission**: Many-to-many relationship between roles and permissions
-- **RefreshToken**: Refresh tokens for JWT token renewal
-- **AuditLog**: Comprehensive audit trail for all actions
+- **RefreshToken**: Refresh tokens for JWT token renewal with device tracking (IP address, device name, browser, OS, device type)
+- **AuditLog**: Comprehensive audit trail for all actions with device information (IP address, device name, browser, OS, device type, user agent)
 
 ### Value Objects
 
@@ -848,6 +850,158 @@ public class MyEventHandler : IEventHandler<UserRegisteredEvent>
 // Register in DI
 builder.Services.AddScoped<IEventHandler<UserRegisteredEvent>, MyEventHandler>();
 ```
+
+## Device Tracking
+
+The library automatically detects and tracks device information from HTTP requests during authentication. This provides valuable security insights and allows you to monitor active sessions.
+
+### Automatic Device Detection
+
+Device information is automatically extracted from the `User-Agent` header and stored during:
+- User login
+- Token refresh
+- External OAuth2 authentication
+- All audit log entries
+
+### Tracked Device Information
+
+The following device information is automatically captured:
+
+| Field | Description | Examples |
+|-------|-------------|----------|
+| **DeviceName** | Specific device model name | "iPhone 14 Pro", "Samsung Galaxy S21", "Mac", "Windows PC" |
+| **DeviceType** | Device category | "Mobile", "Desktop", "Tablet" |
+| **Browser** | Browser name | "Chrome", "Safari", "Firefox", "Edge" |
+| **OperatingSystem** | Operating system | "iOS", "Android", "Windows 11", "macOS" |
+| **UserAgent** | Raw User-Agent string | Full browser user agent header |
+| **IpAddress** | Client IP address | IPv4/IPv6 address with proxy support |
+
+### Device Name Detection
+
+The system intelligently detects device names from User-Agent strings:
+
+**iOS Devices:**
+- iPhone models: "iPhone 14 Pro", "iPhone 15", "iPhone 13 Pro Max", etc.
+- iPad models: "iPad Pro", "iPad Air", "iPad mini"
+- Falls back to generic "iPhone", "iPad" if specific model cannot be determined
+
+**Android Devices:**
+- Samsung Galaxy models: "Samsung Galaxy S21", "Samsung Galaxy Note", etc.
+- Other Android device models when available in User-Agent
+- Falls back to "Android Device" if model cannot be determined
+
+**Desktop Devices:**
+- macOS: "Mac" or "Mac (Apple Silicon)"
+- Windows: "Windows PC"
+- Linux: "{OS} Device"
+
+**Note:** Desktop User-Agent strings don't typically contain specific laptop model names (e.g., "MacBook Pro"). For more accurate desktop device names, consider using client-side JavaScript or device fingerprinting libraries.
+
+### Where Device Information is Stored
+
+#### 1. RefreshTokens Table
+Stores device information for active sessions:
+- `IpAddress`: IP address when the refresh token was created
+- `UserAgent`: Raw User-Agent string
+- `DeviceName`: Detected device name
+- `DeviceType`: Device category
+- `Browser`: Browser name
+- `OperatingSystem`: Operating system
+
+Use this to:
+- View all active sessions for a user
+- Monitor suspicious logins from unknown devices
+- Implement "active devices" management
+- Display session lists (e.g., "Macbook Pro - Chrome" or "iPhone 14 Pro - Safari")
+
+#### 2. AuditLogs Table
+Stores device information for all user actions:
+- `IpAddress`: IP address of the action
+- `UserAgent`: Raw User-Agent string
+- `DeviceName`: Detected device name
+- `DeviceType`: Device category
+- `Browser`: Browser name
+- `OperatingSystem`: Operating system
+
+Use this to:
+- Track login history with device information
+- Investigate security incidents
+- Audit user actions with context
+- Generate reports on device usage
+
+### Querying Device Information
+
+#### Get Active Sessions
+```csharp
+var activeSessions = await context.RefreshTokens
+    .Where(rt => rt.UserId == userId && !rt.IsRevoked && rt.Expires > DateTime.UtcNow)
+    .Select(rt => new
+    {
+        DeviceName = rt.DeviceName,
+        DeviceType = rt.DeviceType,
+        Browser = rt.Browser,
+        OperatingSystem = rt.OperatingSystem,
+        IpAddress = rt.IpAddress,
+        Created = rt.Created,
+        LastUsed = rt.Expires
+    })
+    .ToListAsync();
+```
+
+#### Get Login History
+```csharp
+var loginHistory = await context.AuditLogs
+    .Where(al => al.UserId == userId && al.Action == "Login")
+    .OrderByDescending(al => al.Timestamp)
+    .Select(al => new
+    {
+        DeviceName = al.DeviceName,
+        DeviceType = al.DeviceType,
+        Browser = al.Browser,
+        OperatingSystem = al.OperatingSystem,
+        IpAddress = al.IpAddress,
+        Timestamp = al.Timestamp
+    })
+    .ToListAsync();
+```
+
+#### Revoke Sessions from Specific Device
+```csharp
+// Revoke all sessions from a specific device
+var deviceTokens = await context.RefreshTokens
+    .Where(rt => rt.UserId == userId && rt.DeviceName == "iPhone 14 Pro")
+    .ToListAsync();
+
+foreach (var token in deviceTokens)
+{
+    token.IsRevoked = true;
+}
+
+await context.SaveChangesAsync();
+```
+
+### Displaying Device Information
+
+Example format for displaying active sessions:
+
+```
+Active Sessions:
+- Macbook Pro - Chrome (Hanoi, Vietnam • Just now)
+- iPhone 14 Pro - Safari (Ho Chi Minh, Vietnam • Active 2 hours ago)
+```
+
+The device information is automatically formatted as:
+- **Display Name**: `{DeviceName} - {Browser}`
+- **Location**: IP-based geolocation (if implemented)
+- **Last Activity**: Time since last refresh token usage
+
+### Security Benefits
+
+1. **Suspicious Login Detection**: Identify logins from unknown or unusual devices
+2. **Session Management**: Allow users to view and manage active sessions
+3. **Security Auditing**: Track device patterns for security analysis
+4. **Account Recovery**: Identify trusted devices for account recovery
+5. **Compliance**: Maintain audit trails with device context
 
 ## Testing
 

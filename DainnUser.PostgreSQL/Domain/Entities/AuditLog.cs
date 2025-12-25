@@ -26,6 +26,31 @@ public class AuditLog
     public string IpAddress { get; set; } = string.Empty;
 
     /// <summary>
+    /// Gets or sets the user agent string from the client's browser/device.
+    /// </summary>
+    public string? UserAgent { get; set; }
+
+    /// <summary>
+    /// Gets or sets the device type (e.g., "Desktop", "Mobile", "Tablet", "Unknown").
+    /// </summary>
+    public string? DeviceType { get; set; }
+
+    /// <summary>
+    /// Gets or sets the browser name (e.g., "Chrome", "Firefox", "Safari").
+    /// </summary>
+    public string? Browser { get; set; }
+
+    /// <summary>
+    /// Gets or sets the operating system (e.g., "Windows", "macOS", "iOS", "Android").
+    /// </summary>
+    public string? OperatingSystem { get; set; }
+
+    /// <summary>
+    /// Gets or sets the device name/model (e.g., "iPhone 14 Pro", "Macbook Pro", "Samsung Galaxy S21").
+    /// </summary>
+    public string? DeviceName { get; set; }
+
+    /// <summary>
     /// Gets or sets the timestamp when the audit log entry was created.
     /// </summary>
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;

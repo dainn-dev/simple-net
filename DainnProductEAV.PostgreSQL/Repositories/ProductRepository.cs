@@ -3,6 +3,7 @@ using DainnProductEAV.PostgreSQL.Entities;
 using DainnProductEAV.PostgreSQL.ValueEntities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using DainnCommon.Exceptions;
 
 namespace DainnProductEAV.PostgreSQL.Repositories;
 
@@ -123,7 +124,7 @@ public class ProductRepository : IProductRepository
     {
         var attribute = await GetAttributeByCodeAsync(attributeCode, cancellationToken);
         if (attribute == null)
-            throw new ArgumentException($"Attribute '{attributeCode}' not found.");
+            throw new NotFoundException("Attribute", attributeCode);
 
         switch (attribute.BackendType)
         {
@@ -143,7 +144,7 @@ public class ProductRepository : IProductRepository
                 await SetDatetimeValueAsync(productId, attribute.AttributeId, value != null ? Convert.ToDateTime(value) : null, storeId, cancellationToken);
                 break;
             default:
-                throw new ArgumentException($"Unknown backend type: {attribute.BackendType}");
+                throw new BusinessRuleException($"Unknown backend type: {attribute.BackendType}");
         }
     }
 

@@ -5,6 +5,7 @@ using DainnProductEAV.PostgreSQL.Services;
 using DainnProductEAV.PostgreSQL.Entities;
 using DainnUserManagement.API.Dtos.Catalog;
 using DainnUserManagement.API.Controllers.Admin;
+using DainnCommon.Exceptions;
 
 namespace DainnUserManagement.API.Controllers.Catalog;
 
@@ -192,9 +193,17 @@ public class ProductsController : ControllerBase
             return CreatedAtAction(nameof(GetById), new { id = product.EntityId }, 
                 await GetProductDto(product.EntityId, 0));
         }
+        catch (BusinessRuleException)
+        {
+            throw; // Let middleware handle the response
+        }
+        catch (ValidationException)
+        {
+            throw; // Let middleware handle the response
+        }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            throw new BusinessRuleException(ex.Message, ex);
         }
     }
 
@@ -288,9 +297,17 @@ public class ProductsController : ControllerBase
             await _productService.SetAttributeAsync(id, dto.AttributeCode, dto.Value, dto.StoreId);
             return Ok(new { message = $"Attribute '{dto.AttributeCode}' set successfully" });
         }
+        catch (ValidationException)
+        {
+            throw; // Let middleware handle the response
+        }
+        catch (NotFoundException)
+        {
+            throw; // Let middleware handle the response
+        }
         catch (ArgumentException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            throw new ValidationException(ex.Message);
         }
     }
 

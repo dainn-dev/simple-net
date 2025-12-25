@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using DainnUser.PostgreSQL.Application.Interfaces;
+using DainnUser.PostgreSQL.Application.Helpers;
 using DainnUser.PostgreSQL.Domain.Entities;
 using DainnUser.PostgreSQL.Infrastructure.Persistence;
 using DainnUser.PostgreSQL.Options;
@@ -57,8 +58,10 @@ public sealed class JwtService(AppDbContext context, IPermissionService permissi
     /// Generates a refresh token.
     /// </summary>
     /// <param name="userId">The unique identifier of the user.</param>
+    /// <param name="ipAddress">Optional IP address from which the token is being generated.</param>
+    /// <param name="deviceInfo">Optional device information from the client.</param>
     /// <returns>A task that completes with the generated refresh token.</returns>
-    public async Task<RefreshToken> GenerateRefreshTokenAsync(Guid userId)
+    public async Task<RefreshToken> GenerateRefreshTokenAsync(Guid userId, string? ipAddress = null, DeviceInfo? deviceInfo = null)
     {
         var randomBytes = new byte[32];
         using var rng = RandomNumberGenerator.Create();
@@ -70,7 +73,13 @@ public sealed class JwtService(AppDbContext context, IPermissionService permissi
             Token = tokenValue,
             UserId = userId,
             Expires = DateTime.UtcNow.AddDays(options.JwtSettings.RefreshTokenDays),
-            IsRevoked = false
+            IsRevoked = false,
+            IpAddress = ipAddress,
+            UserAgent = deviceInfo?.UserAgent,
+            DeviceType = deviceInfo?.DeviceType,
+            Browser = deviceInfo?.Browser,
+            OperatingSystem = deviceInfo?.OperatingSystem,
+            DeviceName = deviceInfo?.DeviceName
         };
 
         context.RefreshTokens.Add(refreshToken);

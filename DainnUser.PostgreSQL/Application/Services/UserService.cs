@@ -7,8 +7,9 @@ using System.Diagnostics;
 using DainnUser.PostgreSQL.Application.Dtos;
 using DainnUser.PostgreSQL.Application.Events;
 using DainnUser.PostgreSQL.Application.Interfaces;
+using DainnUser.PostgreSQL.Application.Helpers;
 using DainnUser.PostgreSQL.Domain.Entities;
-using InfraExceptions = DainnUser.PostgreSQL.Infrastructure.Exceptions;
+using InfraExceptions = DainnCommon.Exceptions;
 using DainnUser.PostgreSQL.Infrastructure.Persistence;
 using DainnUser.PostgreSQL.Infrastructure.Telemetry;
 using DainnUser.PostgreSQL.Infrastructure.Metrics;
@@ -224,23 +225,29 @@ public class UserService : IUserService
         // Post-login hook
         await OnAfterLogin(user);
 
+        // Get client information
+        var ipAddress = GetClientIpAddress();
+        var deviceInfo = GetDeviceInfo();
+
         // Publish event
         await _eventPublisher.PublishAsync(new UserLoggedInEvent
         {
             UserId = user.Id,
-            IpAddress = "Unknown"
+            IpAddress = ipAddress
         });
 
         // Audit log
-        var ipAddress = GetClientIpAddress();
-        await _auditService.LogAsync("Login", user.Id, $"Successful login", ipAddress);
+        await _auditService.LogAsync("Login", user.Id, $"Successful login", ipAddress, deviceInfo);
 
         // Structured logging
-        _logger.LogInformation("User {UserId} logged in from {IP}", user.Id, ipAddress);
+        var deviceDisplayName = deviceInfo != null 
+            ? $"{deviceInfo.DeviceName ?? deviceInfo.DeviceType} ({deviceInfo.Browser})" 
+            : "Unknown";
+        _logger.LogInformation("User {UserId} logged in from {IP} on {Device}", user.Id, ipAddress, deviceDisplayName);
 
         // Generate tokens
         var accessToken = await _authService.GenerateJwtAsync(user);
-        var refreshToken = await _authService.GenerateRefreshTokenAsync(user.Id);
+        var refreshToken = await _authService.GenerateRefreshTokenAsync(user.Id, ipAddress, deviceInfo);
 
         activity?.SetTag("user.id", user.Id.ToString());
         activity?.SetStatus(ActivityStatusCode.Ok);
@@ -270,9 +277,13 @@ public class UserService : IUserService
 
         activity?.SetTag("user.id", user.Id.ToString());
 
+        // Get client information
+        var ipAddress = GetClientIpAddress();
+        var deviceInfo = GetDeviceInfo();
+
         // Generate new tokens
         var accessToken = await _authService.GenerateJwtAsync(user);
-        var refreshToken = await _authService.GenerateRefreshTokenAsync(user.Id);
+        var refreshToken = await _authService.GenerateRefreshTokenAsync(user.Id, ipAddress, deviceInfo);
 
         // Revoke old refresh token
         var oldRefreshToken = await _userManager.Users
@@ -762,6 +773,21 @@ public class UserService : IUserService
         }
 
         return httpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+    }
+
+    /// <summary>
+    /// Gets device information from the HTTP context.
+    /// </summary>
+    /// <returns>Device information extracted from the User-Agent header, or null if not available.</returns>
+    protected virtual DeviceInfo? GetDeviceInfo()
+    {
+        if (_httpContextAccessor?.HttpContext == null)
+        {
+            return null;
+        }
+
+        var userAgent = _httpContextAccessor.HttpContext.Request.Headers["User-Agent"].ToString();
+        return DeviceInfoHelper.ParseUserAgent(userAgent);
     }
 
     /// <summary>

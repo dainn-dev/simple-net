@@ -1,6 +1,7 @@
 using DainnProductEAV.PostgreSQL.Entities;
 using DainnProductEAV.PostgreSQL.ValueEntities;
 using Microsoft.EntityFrameworkCore;
+using DainnCommon.Extensions;
 using System.Linq;
 
 namespace DainnProductEAV.PostgreSQL.Contexts;
@@ -45,13 +46,7 @@ public class ProductCatalogDbContext : DbContext
         // Configure all Guid properties to use UUID type in PostgreSQL
         if (Database.IsNpgsql())
         {
-            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-            {
-                foreach (var property in entityType.GetProperties().Where(p => p.ClrType == typeof(Guid) || p.ClrType == typeof(Guid?)))
-                {
-                    property.SetColumnType("uuid");
-                }
-            }
+            modelBuilder.ConfigurePostgreSqlUuids(setDefaultValue: false);
         }
 
         // ========== ProductEntity Configuration ==========

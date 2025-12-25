@@ -30,8 +30,9 @@ using DainnUser.PostgreSQL.Application.Services;
 using DainnUser.PostgreSQL.Infrastructure.Auth;
 using DainnUser.PostgreSQL.Application.Events;
 using DainnUser.PostgreSQL.Application.Validators;
-using DainnUser.PostgreSQL.Infrastructure.Middleware;
 using DainnUser.PostgreSQL.Infrastructure.Telemetry;
+using DainnCommon.Extensions;
+using DainnCommon.Middleware;
 using FluentValidation;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Data.Common;
@@ -55,43 +56,7 @@ public static class ServiceExtensions
 
         builder.Services.AddDbContext<AppDbContext>(dbOptions =>
         {
-            var provider = options.Provider.ToLowerInvariant();
-            switch (provider)
-            {
-                case "sqlite":
-                    dbOptions.UseSqlite(options.ConnectionString);
-                    break;
-                case "sqlserver":
-                    dbOptions.UseSqlServer(options.ConnectionString);
-                    break;
-                case "postgresql":
-                case "npgsql":
-                    dbOptions.UseNpgsql(options.ConnectionString, npgsqlOptions =>
-                    {
-                        npgsqlOptions.EnableRetryOnFailure();
-                    });
-                    break;
-                case "mysql":
-#if !DISABLE_MYSQL
-                    dbOptions.UseMySql(options.ConnectionString, ServerVersion.AutoDetect(options.ConnectionString));
-#else
-                    throw new InvalidOperationException(
-                        "MySQL provider requires Pomelo.EntityFrameworkCore.MySql. " +
-                        "Please use a different database provider (sqlite, sqlserver, postgresql) or enable MySQL support.");
-#endif
-                    break;
-                case "inmemory":
-                    dbOptions.UseInMemoryDatabase(options.ConnectionString);
-                    break;
-                default:
-                    throw new InvalidOperationException(
-                        $"Invalid or missing database provider. The 'DainnApplication:Provider' configuration must be set to one of: " +
-                        $"sqlite, sqlserver, postgresql, npgsql, mysql, or inmemory. " +
-                        $"Current value: '{options.Provider}'. " +
-                        $"Please add a 'DainnApplication:Provider' in your appsettings.json with a valid provider value.");
-            }
-
-            options.ConfigureDbContext?.Invoke(dbOptions);
+            dbOptions.ConfigureDatabaseProvider(options.Provider, options.ConnectionString, options.ConfigureDbContext);
         });
 
         builder.Services.AddIdentity<AppUser, AppRole>()

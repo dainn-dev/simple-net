@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using DainnUser.PostgreSQL.Domain.Entities;
+using DainnCommon.Extensions;
 using System.Linq;
 
 namespace DainnUser.PostgreSQL.Infrastructure.Persistence;
@@ -32,20 +33,7 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>
         // Configure all Guid properties to use UUID type in PostgreSQL
         if (Database.IsNpgsql())
         {
-            foreach (var entityType in builder.Model.GetEntityTypes())
-            {
-                foreach (var property in entityType.GetProperties().Where(p => p.ClrType == typeof(Guid) || p.ClrType == typeof(Guid?)))
-                {
-                    property.SetColumnType("uuid");
-                    
-                    // Set default value for primary key Guid properties (non-nullable)
-                    if (property.ClrType == typeof(Guid) && !property.IsNullable && 
-                        entityType.FindPrimaryKey()?.Properties.Contains(property) == true)
-                    {
-                        property.SetDefaultValueSql("gen_random_uuid()");
-                    }
-                }
-            }
+            builder.ConfigurePostgreSqlUuids(setDefaultValue: true);
         }
 
         // Configure AppUser
