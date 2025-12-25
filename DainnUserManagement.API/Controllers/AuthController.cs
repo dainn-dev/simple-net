@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using DainnUserManagement.Application.Interfaces;
-using DainnUserManagement.Application.Dtos;
+using DainnUser.PostgreSQL.Application.Interfaces;
+using DainnUser.PostgreSQL.Application.Dtos;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 

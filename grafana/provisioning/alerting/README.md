@@ -4,7 +4,7 @@ This directory contains the provisioning configuration for Grafana alerts and no
 
 ## Files
 
-- **rules.yml** - Alert rule definitions for the DainnUserManagement application
+- **rules.yml** - Alert rule definitions for the DainnUser.PostgreSQL application
 - **notifiers.yml** - Notification channel configurations (Email, Slack, PagerDuty)
 
 ## Setup Instructions

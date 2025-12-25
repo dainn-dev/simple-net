@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using DainnUserManagement.Application.Interfaces;
-using DainnUserManagement.Application.Dtos;
-using DainnUserManagement.Domain.Entities;
+using DainnUser.PostgreSQL.Application.Interfaces;
+using DainnUser.PostgreSQL.Application.Dtos;
+using DainnUser.PostgreSQL.Domain.Entities;
 
 namespace DainnUserManagement.API.Controllers.Admin;
 

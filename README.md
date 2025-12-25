@@ -15,7 +15,7 @@ This solution consists of multiple projects working together to provide:
 
 ### Core Libraries
 
-#### [DainnUserManagement](./DainnUserManagement/README.md)
+#### [DainnUser.PostgreSQL](./DainnUser.PostgreSQL/README.md)
 A comprehensive user management library featuring:
 - JWT authentication with refresh tokens
 - Role-based authorization (RBAC)
@@ -26,7 +26,7 @@ A comprehensive user management library featuring:
 - Multi-database provider support (SQLite, SQL Server, PostgreSQL, MySQL, InMemory)
 - Full OpenTelemetry instrumentation
 
-#### [DainnProductEAVManagement](./DainnProductEAVManagement/README.md)
+#### [DainnProductEAV.PostgreSQL](./DainnProductEAV.PostgreSQL/README.md)
 A flexible product catalog library using the EAV pattern:
 - Dynamic product attributes without schema changes
 - Multi-store support with store-specific values
@@ -127,13 +127,13 @@ For detailed Docker setup instructions, see [docker-README.md](./docker-README.m
 
 ```
 simple-net/
-├── DainnUserManagement/          # User management library
+├── DainnUser.PostgreSQL/        # User management library
 │   ├── Application/              # DTOs, services, events, validators
 │   ├── Domain/                    # Domain entities
 │   ├── Infrastructure/           # Persistence, auth, middleware
 │   └── Extensions/               # Service registration extensions
 │
-├── DainnProductEAVManagement/    # Product catalog library
+├── DainnProductEAV.PostgreSQL/   # Product catalog library
 │   ├── Entities/                 # Product, category, attribute entities
 │   ├── ValueEntities/            # EAV value tables
 │   ├── Repositories/             # Data access layer
@@ -172,8 +172,8 @@ Both libraries support multiple database providers:
 
 ## 📚 Documentation
 
-- [User Management Library Documentation](./DainnUserManagement/README.md)
-- [Product Catalog Library Documentation](./DainnProductEAVManagement/README.md)
+- [User Management Library Documentation](./DainnUser.PostgreSQL/README.md)
+- [Product Catalog Library Documentation](./DainnProductEAV.PostgreSQL/README.md)
 - [Docker & Observability Setup](./docker-README.md)
 
 ## 🔑 Default Credentials
@@ -227,7 +227,7 @@ When `SeedDefaultAdmin` is enabled, the following accounts are created:
 
 ### User Management Configuration
 
-See [User Management README](./DainnUserManagement/README.md#configuration-reference) for complete configuration options.
+See [User Management README](./DainnUser.PostgreSQL/README.md#configuration-reference) for complete configuration options.
 
 Key settings in `appsettings.json`:
 ```json

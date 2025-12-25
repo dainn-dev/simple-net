@@ -1,12 +1,12 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using DainnUserManagement.Application.Dtos;
+using DainnUser.PostgreSQL.Application.Dtos;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using DainnUserManagement.Domain.Entities;
-using DainnUserManagement.Infrastructure.Persistence;
+using DainnUser.PostgreSQL.Domain.Entities;
+using DainnUser.PostgreSQL.Infrastructure.Persistence;
 
 namespace DainnUserManagement.Tests.Integration;
 

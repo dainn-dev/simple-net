@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using DainnUserManagement.Application.Interfaces;
+using DainnUser.PostgreSQL.Application.Interfaces;
 
 namespace DainnUserManagement.API.Controllers.Admin;
 

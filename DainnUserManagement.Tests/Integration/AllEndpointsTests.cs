@@ -1,9 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
-using DainnUserManagement.Application.Dtos;
+using DainnUser.PostgreSQL.Application.Dtos;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
-using DainnUserManagement.Domain.Entities;
+using DainnUser.PostgreSQL.Domain.Entities;
 
 namespace DainnUserManagement.Tests.Integration;
 

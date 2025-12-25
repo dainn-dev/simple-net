@@ -1,7 +1,7 @@
-using DainnUserManagement.Extensions;
+using DainnUser.PostgreSQL.Extensions;
 using DainnUserManagement.API.Controllers;
 using DainnUserManagement.API.Extensions;
-using DainnProductEAVManagement.Extensions;
+using DainnProductEAV.PostgreSQL.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 

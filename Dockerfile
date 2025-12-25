@@ -8,11 +8,11 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
 # Copy project files
-COPY ["DainnUserManagement/DainnUserManagement.csproj", "./DainnUserManagement/"]
+COPY ["DainnUser.PostgreSQL/DainnUser.PostgreSQL.csproj", "./DainnUser.PostgreSQL/"]
 COPY ["DainnUserManagement.API/DainnUserManagement.API.csproj", "./DainnUserManagement.API/"]
 
 # Copy source files (exclude Tests, bin, obj via .dockerignore)
-COPY ["DainnUserManagement/", "./DainnUserManagement/"]
+COPY ["DainnUser.PostgreSQL/", "./DainnUser.PostgreSQL/"]
 COPY ["DainnUserManagement.API/", "./DainnUserManagement.API/"]
 
 # Remove any obj/bin folders that might have been copied

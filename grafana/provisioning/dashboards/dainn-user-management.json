@@ -2,7 +2,7 @@
   "dashboard": {
     "id": null,
     "uid": "dainn_user_management",
-    "title": "DainnUserManagement - System Metrics",
+    "title": "DainnUser.PostgreSQL - System Metrics",
     "tags": ["dainn", "user-management", "metrics"],
     "timezone": "browser",
     "schemaVersion": 38,

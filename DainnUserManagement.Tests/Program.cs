@@ -1,4 +1,4 @@
-using DainnUserManagement.Extensions;
+using DainnUser.PostgreSQL.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 

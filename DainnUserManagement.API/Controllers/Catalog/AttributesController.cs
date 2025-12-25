@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using DainnProductEAVManagement.Services;
-using DainnProductEAVManagement.Entities;
+using DainnProductEAV.PostgreSQL.Services;
+using DainnProductEAV.PostgreSQL.Entities;
 using DainnUserManagement.API.Dtos.Catalog;
 
 namespace DainnUserManagement.API.Controllers.Catalog;

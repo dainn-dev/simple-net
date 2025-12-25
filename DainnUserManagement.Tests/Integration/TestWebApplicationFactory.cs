@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using DainnUserManagement.Infrastructure.Persistence;
+using DainnUser.PostgreSQL.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace DainnUserManagement.Tests.Integration;
@@ -33,26 +33,26 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
 
             // Remove any existing IEmailService implementations
             var emailDescriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DainnUserManagement.Application.Interfaces.IEmailService));
+                d => d.ServiceType == typeof(DainnUser.PostgreSQL.Application.Interfaces.IEmailService));
             if (emailDescriptor != null)
             {
                 services.Remove(emailDescriptor);
             }
 
             // Register mock email service
-            services.AddScoped<DainnUserManagement.Application.Interfaces.IEmailService, MockEmailService>();
+            services.AddScoped<DainnUser.PostgreSQL.Application.Interfaces.IEmailService, MockEmailService>();
 
             // Remove existing event handlers
             var handlerDescriptors = services.Where(
                 d => d.ServiceType.IsGenericType &&
-                d.ServiceType.GetGenericTypeDefinition() == typeof(DainnUserManagement.Application.Interfaces.IEventHandler<>)).ToList();
+                d.ServiceType.GetGenericTypeDefinition() == typeof(DainnUser.PostgreSQL.Application.Interfaces.IEventHandler<>)).ToList();
             foreach (var handler in handlerDescriptors)
             {
                 services.Remove(handler);
             }
 
             // Register mock event handlers
-            services.AddScoped<DainnUserManagement.Application.Interfaces.IEventHandler<DainnUserManagement.Application.Events.UserRegisteredEvent>, MockWelcomeEmailHandler>();
+            services.AddScoped<DainnUser.PostgreSQL.Application.Interfaces.IEventHandler<DainnUser.PostgreSQL.Application.Events.UserRegisteredEvent>, MockWelcomeEmailHandler>();
 
             // Configure logging
             services.AddLogging(loggingBuilder => loggingBuilder.AddConsole().SetMinimumLevel(LogLevel.Warning));
@@ -65,7 +65,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
 /// <summary>
 /// Mock email service for testing.
 /// </summary>
-public class MockEmailService : DainnUserManagement.Application.Interfaces.IEmailService
+public class MockEmailService : DainnUser.PostgreSQL.Application.Interfaces.IEmailService
 {
     public List<string> SentEmails { get; } = new();
     public List<(string Email, string Token)> ConfirmationEmails { get; } = new();
@@ -89,11 +89,11 @@ public class MockEmailService : DainnUserManagement.Application.Interfaces.IEmai
 /// <summary>
 /// Mock event handler for testing welcome emails.
 /// </summary>
-public class MockWelcomeEmailHandler : DainnUserManagement.Application.Interfaces.IEventHandler<DainnUserManagement.Application.Events.UserRegisteredEvent>
+public class MockWelcomeEmailHandler : DainnUser.PostgreSQL.Application.Interfaces.IEventHandler<DainnUser.PostgreSQL.Application.Events.UserRegisteredEvent>
 {
-    public List<DainnUserManagement.Application.Events.UserRegisteredEvent> HandledEvents { get; } = new();
+    public List<DainnUser.PostgreSQL.Application.Events.UserRegisteredEvent> HandledEvents { get; } = new();
 
-    public Task HandleAsync(DainnUserManagement.Application.Events.UserRegisteredEvent @event)
+    public Task HandleAsync(DainnUser.PostgreSQL.Application.Events.UserRegisteredEvent @event)
     {
         HandledEvents.Add(@event);
         return Task.CompletedTask;

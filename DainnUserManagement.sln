@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DainnUserManagement", "DainnUserManagement\DainnUserManagement.csproj", "{E56DF40D-00A4-401F-A266-BE69021B525A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DainnUser.PostgreSQL", "DainnUser.PostgreSQL\DainnUser.PostgreSQL.csproj", "{E56DF40D-00A4-401F-A266-BE69021B525A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DainnUserManagement.Tests", "DainnUserManagement.Tests\DainnUserManagement.Tests.csproj", "{CCEE6540-874C-4FA7-A2F2-2CF77D7FF518}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DainnUserManagement.API", "DainnUserManagement.API\DainnUserManagement.API.csproj", "{5B286F79-B6F1-8277-5793-875066A8FA69}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DainnProductEAVManagement", "DainnProductEAVManagement\DainnProductEAVManagement.csproj", "{9222E5A6-1C03-4520-852C-B4A0BC1F9AD3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DainnProductEAV.PostgreSQL", "DainnProductEAV.PostgreSQL\DainnProductEAV.PostgreSQL.csproj", "{9222E5A6-1C03-4520-852C-B4A0BC1F9AD3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

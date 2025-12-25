@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DainnUserManagement\DainnUserManagement.csproj" />
+    <ProjectReference Include="..\DainnUser.PostgreSQL\DainnUser.PostgreSQL.csproj" />
   </ItemGroup>
 
 </Project>

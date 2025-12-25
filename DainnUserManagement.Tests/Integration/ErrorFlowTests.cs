@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using DainnUserManagement.Application.Dtos;
+using DainnUser.PostgreSQL.Application.Dtos;
 
 namespace DainnUserManagement.Tests.Integration;
 
@@ -78,12 +78,12 @@ public class ErrorFlowTests : IClassFixture<TestWebApplicationFactory>
     {
         // Arrange - Login as admin
         using var scope = _factory.Services.CreateScope();
-        var userManager = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<DainnUserManagement.Domain.Entities.AppUser>>();
-        var roleManager = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.RoleManager<DainnUserManagement.Domain.Entities.AppRole>>();
+        var userManager = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<DainnUser.PostgreSQL.Domain.Entities.AppUser>>();
+        var roleManager = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.RoleManager<DainnUser.PostgreSQL.Domain.Entities.AppRole>>();
 
         if (!await roleManager.RoleExistsAsync("Admin"))
         {
-            await roleManager.CreateAsync(new DainnUserManagement.Domain.Entities.AppRole { Name = "Admin", Description = "Admin role" });
+            await roleManager.CreateAsync(new DainnUser.PostgreSQL.Domain.Entities.AppRole { Name = "Admin", Description = "Admin role" });
         }
 
         var adminEmail = "admin@test.com";
@@ -92,7 +92,7 @@ public class ErrorFlowTests : IClassFixture<TestWebApplicationFactory>
         
         if (adminUser == null)
         {
-            adminUser = new DainnUserManagement.Domain.Entities.AppUser { Email = adminEmail, UserName = adminEmail, FullName = "Admin", EmailConfirmed = true };
+            adminUser = new DainnUser.PostgreSQL.Domain.Entities.AppUser { Email = adminEmail, UserName = adminEmail, FullName = "Admin", EmailConfirmed = true };
             await userManager.CreateAsync(adminUser, adminPassword);
             await userManager.AddToRoleAsync(adminUser, "Admin");
         }

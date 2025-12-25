@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using DainnUserManagement.Application.Interfaces;
-using DainnUserManagement.Application.Dtos;
+using DainnUser.PostgreSQL.Application.Interfaces;
+using DainnUser.PostgreSQL.Application.Dtos;
 
 namespace DainnUserManagement.API.Controllers;
 

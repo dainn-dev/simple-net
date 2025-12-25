@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
-using DainnUserManagement.Application.Dtos;
-using DainnUserManagement.Application.Events;
+using DainnUser.PostgreSQL.Application.Dtos;
+using DainnUser.PostgreSQL.Application.Events;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DainnUserManagement.Tests.Integration;

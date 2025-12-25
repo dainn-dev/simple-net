@@ -1,12 +1,12 @@
 # Docker Observability Stack
 
-This directory contains the Docker Compose configuration for running the DainnUserManagement application with a complete observability stack.
+This directory contains the Docker Compose configuration for running the DainnUser.PostgreSQL application with a complete observability stack.
 
 ## Services
 
 The stack includes:
 
-- **app**: DainnUserManagement application
+- **app**: DainnUser.PostgreSQL application
 - **otel-collector**: OpenTelemetry Collector for traces, metrics, and logs
 - **prometheus**: Metrics collection and storage
 - **grafana**: Visualization and dashboards
@@ -64,7 +64,7 @@ This will:
 
 #### Traces in Jaeger
 1. Open http://localhost:16686
-2. Select service: `DainnUserManagement`
+2. Select service: `DainnUser.PostgreSQL`
 3. Click "Find Traces"
 4. You should see traces from the application (after making some API calls)
 
@@ -81,12 +81,12 @@ This will:
 1. Open Grafana at http://localhost:3000
 2. Go to "Explore"
 3. Select "Loki" data source
-4. Query: `{job="varlogs"}` or `{service_name="DainnUserManagement"}`
+4. Query: `{job="varlogs"}` or `{service_name="DainnUser.PostgreSQL"}`
 
 #### Dashboard Auto-Import
 1. Open Grafana at http://localhost:3000
 2. Navigate to "Dashboards"
-3. The "DainnUserManagement - System Metrics" dashboard should be automatically available
+3. The "DainnUser.PostgreSQL - System Metrics" dashboard should be automatically available
 
 ## Configuration Files
 

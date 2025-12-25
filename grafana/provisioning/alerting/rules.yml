@@ -1,8 +1,8 @@
 groups:
-  - name: DainnUserManagement_Alerts
+  - name: DainnUser.PostgreSQL_Alerts
     interval: 30s
     org_id: 1
-    folder: DainnUserManagement
+    folder: DainnUser.PostgreSQL
     rules:
       - uid: high_failed_logins
         title: High Failed Logins
